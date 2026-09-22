@@ -3,8 +3,8 @@ title: 02 - Améliorer une exigence
 description: Rédiger sa propre demande de modification ciblée, ajouter un filtre de priorité et vérifier que filtrer change la visibilité sans toucher aux données.
 lang: fr
 translation_key: lab-02-refine-canvas
+lang_ref: /labs/lab-02-refine-canvas/
 parent: Ateliers
-grand_parent: Français
 nav_order: 3
 duration_minutes: 15
 covers:

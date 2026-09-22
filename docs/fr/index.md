@@ -1,10 +1,10 @@
 ---
-title: Français
+title: Accueil
 description: Atelier pratique de quatre-vingt-dix minutes sur l'application GitHub Copilot et les extensions de canevas, conçu et livré en français.
 lang: fr
 translation_key: home
-nav_order: 90
-has_children: true
+lang_ref: /
+nav_order: 1
 covers:
   - synthetic-data-only
   - no-endorsement

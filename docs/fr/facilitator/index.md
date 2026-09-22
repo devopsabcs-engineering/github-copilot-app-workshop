@@ -3,7 +3,7 @@ title: Trousse d'animation
 description: Points de contrôle, feuille de route et artefacts de reprise pour animer l'atelier de quatre-vingt-dix minutes sur l'application GitHub Copilot.
 lang: fr
 translation_key: facilitator-index
-parent: Français
+lang_ref: /facilitator/
 nav_order: 6
 has_children: true
 covers:

@@ -3,8 +3,8 @@ title: Canevas de référence
 description: Construire, réviser et déposer l'artefact de reprise sous forme de répertoire copiable plutôt que de captures d'écran.
 lang: fr
 translation_key: facilitator-reference-canvas
+lang_ref: /facilitator/reference-canvas/
 parent: Trousse d'animation
-grand_parent: Français
 nav_order: 3
 covers:
   - review-dependencies-before-run

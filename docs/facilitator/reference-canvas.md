@@ -3,6 +3,7 @@ title: Reference Canvas
 description: Building, reviewing, and staging the recovery artifact as a copyable extensions directory rather than screenshots.
 lang: en
 translation_key: facilitator-reference-canvas
+lang_ref: /fr/facilitator/reference-canvas/
 parent: Facilitator Kit
 nav_order: 3
 covers:

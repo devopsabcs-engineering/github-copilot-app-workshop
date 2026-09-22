@@ -3,6 +3,7 @@ title: Running the Session
 description: Abort clock, per-beat decomposition of the thirty-minute block, staffing, staggered waves, and the rule that no learner falls more than one section behind.
 lang: en
 translation_key: facilitator-running-the-session
+lang_ref: /fr/facilitator/running-the-session/
 parent: Facilitator Kit
 nav_order: 2
 covers:

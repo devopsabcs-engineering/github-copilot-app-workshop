@@ -3,6 +3,7 @@ title: Workshop
 description: A ninety-minute canvas-first GitHub Copilot app workshop for developers, delivered in English or in French.
 lang: en
 translation_key: home
+lang_ref: /fr/
 nav_order: 1
 covers:
   - synthetic-data-only

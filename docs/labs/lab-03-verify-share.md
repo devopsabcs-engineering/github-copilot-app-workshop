@@ -3,6 +3,7 @@ title: "Lab 03: Verify and Decide"
 description: Read the Changes view yourself, check what the board actually persists, and decide separately whether source and state may be shared.
 lang: en
 translation_key: lab-03-verify-share
+lang_ref: /fr/labs/lab-03-verify-share/
 parent: Labs
 nav_order: 4
 duration_minutes: 15

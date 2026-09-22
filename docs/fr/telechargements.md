@@ -3,7 +3,7 @@ title: Téléchargements
 description: Support de présentation francophone et artefacts de reprise, avec ce que chaque fichier prouve et ce qu'il ne prouve pas.
 lang: fr
 translation_key: downloads
-parent: Français
+lang_ref: /downloads/
 nav_order: 4
 covers:
   - synthetic-data-only

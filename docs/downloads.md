@@ -3,6 +3,7 @@ title: Downloads
 description: Slide decks for the English and French deliveries, produced as build outputs rather than tracked files.
 lang: en
 translation_key: downloads
+lang_ref: /fr/telechargements/
 nav_order: 4
 covers:
   - synthetic-data-only

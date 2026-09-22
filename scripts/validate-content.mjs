@@ -679,6 +679,15 @@ function collectPages(relativePaths) {
 // whatever the theme's sort happens to do. Both are shared-state defects that no
 // single-subtree check can see, so they are asserted here rather than left to a
 // hand review of the rendered site.
+//
+// The group key includes the page language. The two language trees are
+// structurally parallel: each has its own top level and its own Labs and
+// Facilitator subtrees, both numbered from 1. They share one cached sidebar, but
+// _includes/head_custom.html hides the other language's items per page, so an
+// English and a French page at the same nav_order are never rendered in the same
+// visible list and cannot be ordered ambiguously against each other. Language is
+// therefore part of what identifies a list, not an excuse to ignore a clash: two
+// pages in the SAME language that collide still fail.
 function validateNavigation(pages) {
   const titles = new Map();
   for (const page of pages) {
@@ -723,10 +732,12 @@ function validateNavigation(pages) {
       fail(page.relativePath, 'nav_order', 'nav_order is required so sidebar position is declared rather than inferred.');
       continue;
     }
-    const groupKey = `${grandParent ?? ''}\u0000${parent ?? ''}`;
+    const groupKey = `${page.language}\u0000${grandParent ?? ''}\u0000${parent ?? ''}`;
     if (!groups.has(groupKey)) groups.set(groupKey, new Map());
     const seen = groups.get(groupKey);
-    const label = parent ? `${grandParent ? `${grandParent} > ` : ''}${parent}` : 'top level';
+    const label = parent
+      ? `${grandParent ? `${grandParent} > ` : ''}${parent} (${page.language})`
+      : `top level (${page.language})`;
     if (seen.has(navOrder)) {
       fail(
         page.relativePath,
@@ -738,7 +749,8 @@ function validateNavigation(pages) {
     }
   }
 
-  info(`Navigation OK: ${pages.length} page(s) across ${groups.size} nav group(s), no parent or nav_order conflicts.`);
+  // Counts, not a verdict. The verdict is the exit code from report().
+  info(`Navigation: ${pages.length} page(s) checked across ${groups.size} nav group(s).`);
 }
 
 // ---------------------------------------------------------------------------
@@ -840,6 +852,91 @@ function validateCounterparts(pages) {
       );
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Language toggle integrity
+// ---------------------------------------------------------------------------
+
+// The permalink each page will be published at. The site sets `permalink: pretty`
+// and no page overrides it, so the URL is derived from the path alone: drop the
+// docs/ root and the .md suffix, drop a trailing `index`, and wrap in slashes.
+function pageUrlOf(relativePath) {
+  const withoutRoot = relativePath.slice(`${PAGE_ROOT}/`.length).replace(/\.md$/, '');
+  const segments = withoutRoot.split('/');
+  if (segments[segments.length - 1] === 'index') segments.pop();
+  return segments.length === 0 ? '/' : `/${segments.join('/')}/`;
+}
+
+// Every page carries a visible toggle to its counterpart, driven by `lang_ref`.
+// Jekyll will happily render a link to a URL that does not exist, and a pair that
+// points in only one direction is worse than a missing link: the reader can cross
+// to the other language and then cannot get back. Existence, direction, and
+// symmetry are all asserted, because only symmetry makes the toggle round-trip.
+function validateLanguageToggle(pages) {
+  const byUrl = new Map();
+  for (const page of pages) {
+    byUrl.set(pageUrlOf(page.relativePath), page);
+  }
+
+  const refs = new Map();
+
+  for (const page of pages) {
+    const url = pageUrlOf(page.relativePath);
+    const ref = page.frontMatter.lang_ref;
+
+    if (!isNonEmptyString(ref)) {
+      fail(
+        page.relativePath,
+        'lang_ref',
+        'lang_ref is missing or blank, so this page renders no language toggle and strands the reader in one language.'
+      );
+      continue;
+    }
+
+    const target = byUrl.get(ref);
+    if (!target) {
+      fail(
+        page.relativePath,
+        'lang_ref',
+        `lang_ref "${ref}" matches no page URL, so the toggle would link to a 404.`
+      );
+      continue;
+    }
+
+    if (target.language === page.language) {
+      fail(
+        page.relativePath,
+        'lang_ref',
+        `lang_ref "${ref}" resolves to ${target.relativePath}, which is also ${page.language}. The toggle must cross languages.`
+      );
+      continue;
+    }
+
+    refs.set(url, ref);
+  }
+
+  let symmetric = 0;
+  for (const [url, ref] of refs) {
+    const back = refs.get(ref);
+    // An undefined back-reference means the target already failed a check above;
+    // reporting it a second time here would only duplicate that failure.
+    if (back === undefined) continue;
+    if (back !== url) {
+      fail(
+        byUrl.get(url).relativePath,
+        'lang_ref',
+        `Points at "${ref}", but ${byUrl.get(ref).relativePath} points back at "${back}" rather than "${url}". The toggle must round-trip.`
+      );
+    } else {
+      symmetric += 1;
+    }
+  }
+
+  // Counts, not a verdict. The verdict is the exit code from report().
+  info(
+    `Language toggle: ${refs.size} of ${pages.length} page(s) carry a lang_ref resolving to the other language; ${symmetric} of those round-trip.`
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -1013,6 +1110,7 @@ function main() {
 
   validateNavigation(pages);
   validateCounterparts(pages);
+  validateLanguageToggle(pages);
   validateReadme();
   validateBasePath(options);
   report(mode);

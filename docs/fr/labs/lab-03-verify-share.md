@@ -3,8 +3,8 @@ title: 03 - Vérifier et transmettre
 description: Lire soi-même la vue des modifications, juger si la validation générée constitue une preuve, et décider séparément du partage du code et de celui de l'état.
 lang: fr
 translation_key: lab-03-verify-share
+lang_ref: /labs/lab-03-verify-share/
 parent: Ateliers
-grand_parent: Français
 nav_order: 4
 duration_minutes: 10
 covers:

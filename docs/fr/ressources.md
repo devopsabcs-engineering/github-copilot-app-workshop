@@ -3,7 +3,7 @@ title: Ressources
 description: Documentation officielle, date de récupération des sources, avertissement sur le code public et liste explicite de ce qui n'a pas été vérifié.
 lang: fr
 translation_key: resources
-parent: Français
+lang_ref: /resources/
 nav_order: 5
 covers:
   - synthetic-data-only

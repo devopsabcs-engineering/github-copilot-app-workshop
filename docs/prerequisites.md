@@ -3,6 +3,7 @@ title: Prerequisites
 description: Accounts, plan entitlement, platform, runtime, network, and approval checks that must pass before the timed workshop starts.
 lang: en
 translation_key: prerequisites
+lang_ref: /fr/prerequis/
 nav_order: 2
 covers:
   - no-installation-in-class

@@ -3,8 +3,8 @@ title: 00 - Session et plan
 description: Ouvrir une session sur le projet approuvé, travailler en mode Plan, et retirer un élément du plan proposé avant toute génération.
 lang: fr
 translation_key: lab-00-setup
+lang_ref: /labs/lab-00-setup/
 parent: Ateliers
-grand_parent: Français
 nav_order: 1
 duration_minutes: 15
 covers:

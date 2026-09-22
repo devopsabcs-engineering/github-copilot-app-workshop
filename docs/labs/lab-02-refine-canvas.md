@@ -3,6 +3,7 @@ title: "Lab 02: Refine One Requirement"
 description: Write your own bounded change request, add a priority filter, and prove that filtering changed what is visible and nothing that is stored.
 lang: en
 translation_key: lab-02-refine-canvas
+lang_ref: /fr/labs/lab-02-refine-canvas/
 parent: Labs
 nav_order: 3
 duration_minutes: 15

@@ -3,7 +3,7 @@ title: Préalables
 description: Ce qui doit être installé, autorisé et vérifié avant la séance, et les cas connus qui empêchent l'application de fonctionner le jour même.
 lang: fr
 translation_key: prerequisites
-parent: Français
+lang_ref: /prerequisites/
 nav_order: 2
 covers:
   - synthetic-data-only

@@ -3,6 +3,7 @@ title: "Lab 01: Create the Canvas and Inspect It"
 description: Send the reviewed creation prompt, review the reported dependencies before anything runs, then drive the same board state from the interface and from the agent.
 lang: en
 translation_key: lab-01-create-canvas
+lang_ref: /fr/labs/lab-01-create-canvas/
 parent: Labs
 nav_order: 2
 duration_minutes: 30

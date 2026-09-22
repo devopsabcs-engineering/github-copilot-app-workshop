@@ -3,8 +3,8 @@ title: Points de contrôle préalables
 description: Exigences à réussir ou à échouer, avec responsable nommé, preuve consignée, date et décision datée par langue.
 lang: fr
 translation_key: facilitator-preflight
+lang_ref: /facilitator/preflight/
 parent: Trousse d'animation
-grand_parent: Français
 nav_order: 1
 covers:
   - scope-boundaries

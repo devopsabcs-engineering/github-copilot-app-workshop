@@ -3,8 +3,8 @@ title: État de la validation
 description: Ce qui a été vérifié par machine, ce qui relève du jugement humain, ce qui n'a pas été vérifié du tout, et les exigences bloquantes qui interdisent toute date de séance.
 lang: fr
 translation_key: facilitator-validation-status
+lang_ref: /facilitator/validation-status/
 parent: Trousse d'animation
-grand_parent: Français
 nav_order: 4
 covers:
   - unrehearsed-proposal-notice
@@ -13,7 +13,7 @@ covers:
 
 # État de la validation
 
-Consigné le 2026-09-22, à la fin de la rédaction. Cette page existe pour que personne n'ait à déduire l'état de cet atelier du seul fait qu'une construction a réussi.
+Consigné le 2026-09-22, à la fin de la rédaction, puis révisé le même jour après l'activation de GitHub Pages, le premier déploiement réussi du flux, et la restriction de la navigation à une seule langue à la fois. Cette page existe pour que personne n'ait à déduire l'état de cet atelier du seul fait qu'une construction a réussi.
 
 > [!CAUTION]
 > **Cet atelier n'est pas prêt à être livré, et aucune date de séance ne doit être proposée à un client tant que les exigences bloquantes ci-dessous restent ouvertes.** Tout ce qui a été vérifié est une propriété de ce dépôt. Rien de ce qui a été vérifié n'est une propriété d'une salle, d'un réseau, d'un locataire, d'une image de poste ou de l'application elle-même. Une construction réussie prouve que le site et les supports ont été produits correctement. Elle ne prouve rien quant au bon déroulement de la séance.
@@ -46,6 +46,9 @@ Chaque élément ci-dessous a été exécuté sur ce dépôt à la date indiqué
 | Ordre de tabulation et langue du document | Audit statique des 28 pages construites | Lien d'évitement en premier sur les 28, aucun `tabindex` positif, 14 pages déclarent `en` et 14 déclarent `fr` |
 | Redistribution du contenu | Les 28 pages à 640 puis à 320 pixels CSS | Aucun défilement horizontal sur les 56 vérifications |
 | Géométrie des supports, toutes diapositives | Texte et géométrie des cadres lus dans les binaires `.pptx` produits, 160 blocs de texte sur les 32 diapositives | Chaque chaîne mesurée tient dans son cadre, aucune forme hors diapositive |
+| Site publié, servi depuis le chemin de base réel | 15 adresses demandées sur `https://devopsabcs-engineering.github.io/github-copilot-app-workshop/` après le premier déploiement réussi | Les 15 ont répondu HTTP 200, y compris les deux fichiers `.pptx` ; aucun lien ne laissait fuiter un préfixe `/docs/`, et 37 liens portaient bien le chemin de base |
+| Intégrité du sélecteur de langue | `npm run validate:content` | Les 28 pages déclarent un `lang_ref` ; chacun mène à une page réelle dans l'autre langue, et chaque paire est réciproque |
+| Navigation restreinte à une seule langue | Les 28 pages construites inspectées, plus un vrai navigateur à 1280 pixels CSS | L'en-tête de chaque page masque les entrées de l'autre langue ; une page anglaise affiche six liens anglais de premier niveau et aucun lien français, une page française l'inverse |
 
 Quatre défauts d'accessibilité ont été trouvés par ces vérifications, puis corrigés plutôt que consignés. Les deux premiers sont liés : corriger l'un a fait apparaître l'autre.
 
@@ -63,12 +66,13 @@ Quatre défauts d'accessibilité ont été trouvés par ces vérifications, puis
 
 Rien dans cette section n'a été vérifié. Rien de tout cela ne doit être présenté comme fonctionnel.
 
-* **Restitution vocale par lecteur d'écran.** La navigation marque bien chaque lien avec sa propre langue : 28 liens par page, 14 déclarant `en` et 14 déclarant `fr`, la barre latérale rendue étant identique octet pour octet dans les deux arborescences, exactement comme l'impose la mise en cache de ce composant. **Cela relève du balisage, pas de la restitution.** Aucun lecteur d'écran n'a été utilisé. Nul ne sait si une technologie d'assistance change réellement de voix sur ces attributs, donc la conformité au critère WCAG 3.1.2 pour la navigation reste non confirmée. Émettre un attribut `lang` ne prouve pas qu'une restitution change.
+* **Restitution vocale par lecteur d'écran.** La navigation marque bien chaque lien avec sa propre langue : 28 liens par page, 14 déclarant `en` et 14 déclarant `fr`, la barre latérale rendue étant identique octet pour octet dans les deux arborescences, exactement comme l'impose la mise en cache de ce composant. La moitié de ces liens est désormais masquée par feuille de style selon la page, mais les 28 restent dans le document, et le lien du sélecteur de langue porte `lang` et `hreflang` pour sa langue cible suivant le même raisonnement. **Cela relève du balisage, pas de la restitution.** Aucun lecteur d'écran n'a été utilisé. Nul ne sait si une technologie d'assistance change réellement de voix sur ces attributs, donc la conformité au critère WCAG 3.1.2 pour la navigation et pour le sélecteur reste non confirmée. Émettre un attribut `lang` ne prouve pas qu'une restitution change.
+* **Le sélecteur de langue sous technologie d'assistance.** Son repère `<nav>` porte bien un nom accessible unique, et le texte visible du lien est dans la langue cible. Personne n'a vérifié si cela suffit à faire comprendre à une personne utilisant un lecteur d'écran que ce lien change la langue de tout le site.
 * **Contraste du titre du site et des liens de la barre latérale.** axe-core les a renvoyés comme *indéterminés*, et non comme réussis : l'outil n'a pas pu les calculer, ces éléments étant partiellement masqués ou posés sur un dégradé. On en compte 75 sur les 28 pages à 1280 pixels CSS, soit de deux à cinq par page selon le nombre de liens que cette page affiche, et aucun à 400 pixels où la barre latérale se replie. Le recalcul manuel à partir des couleurs réellement rendues les place tous au-dessus du niveau AA, le plus mince étant le lien de la barre latérale à 5,03:1 pour une exigence de 4,5:1. Cette marge est assez mince pour qu'une évolution du thème la franchisse sans bruit, et un calcul manuel n'équivaut pas à une réussite outillée.
 * **L'aspect visuel des deux supports.** Aucun outil de rendu n'existe dans cet environnement : aucune diapositive n'a jamais été affichée. La géométrie a été mesurée dans les binaires, ce qui borne le risque de débordement mais ne dit rien de la lisibilité, du contraste, de l'équilibre visuel ni d'une substitution de police. C'est l'exigence bloquante DR-08.
 * **Toutes les invites des ateliers.** Aucune invite de ce dépôt n'a jamais été exécutée en atelier. Aucun nom de capacité produit par l'une d'elles n'est garanti. Personne n'a observé le résultat d'aucune d'entre elles.
 * **Le minutage.** Aucune durée de section, aucun découpage fin et aucun seuil d'abandon n'a été mesuré. Chaque valeur en minutes sur ce site est une estimation.
-* **Le site publié.** GitHub Pages n'est pas activé : le flux de publication n'a jamais été exécuté et aucune page n'a jamais été servie depuis le chemin de base réel. Tout ce qui précède a été vérifié sur une construction locale.
+* **Le comportement de la barre latérale sans `:has()` ni JavaScript.** La règle de masquage et sa solution de repli en JavaScript ont chacune été confirmées dans un navigateur récent. Aucun navigateur ancien n'a été testé. Là où ni l'une ni l'autre n'est disponible, les deux arborescences restent visibles, ce qui est une régression esthétique et non un site cassé, mais ce mode dégradé n'a jamais été observé.
 
 ## Exigences bloquantes
 
@@ -85,9 +89,9 @@ Chaque exigence ci-dessous est ouverte. Chacune bloque la livraison à elle seul
 | RC-04 | La politique d'application par poste n'a pas été vérifiée. Elle peut bloquer l'application indépendamment du droit d'usage. | Administrateur du locataire client | Un résultat de vérification par poste sur le locataire réel |
 | DR-07 | Aucune capture d'écran n'existe dans ce dépôt, car toute capture suppose une répétition qui n'a pas eu lieu. | Responsable pédagogique | Des images nettoyées prises pendant la répétition, portant chacune la version de l'application et la date |
 | DR-08 | Aucun des deux supports n'a jamais été rendu ni regardé. Aucun outil de rendu n'existe dans cet environnement : l'inspection s'est réduite à mesurer le texte extrait par rapport à la géométrie des cadres. Lisibilité, contraste, équilibre visuel et substitution de police restent inexaminés. | Responsable pédagogique | Les 32 diapositives rendues et inspectées, puis une revue de conception par le responsable pédagogique |
-| DR-09 | GitHub Pages n'est pas activé sur ce dépôt. L'étape de configuration du flux échoue dès la première exécution, y compris sur les demandes de tirage. | Propriétaire du dépôt | Pages activé avec la source Actions, et une exécution réussie du flux |
-| DR-10 | L'action `ruby/setup-ruby` est absente de la liste d'actions autorisées. La tâche de construction ne peut pas installer Ruby. | Propriétaire du dépôt ou de l'organisation | L'action présente dans la liste autorisée, et une exécution réussie du flux |
 | OD-02 à OD-05, OD-07, OD-08 | Décisions ouvertes : autorisation d'exécuter du code généré, plafond de participants et nombre d'animateurs, cohortes séparées ou bilingue, conservation du code produit, affectation des participants à un parcours, et acceptation du paquet fictif `https`. | Responsable de livraison et parrain client | Une décision consignée par point |
+
+Deux exigences qui figuraient dans une version précédente de ce tableau, DR-09 et DR-10, sont maintenant refermées. Pages est activé avec la source Actions ; `ruby/setup-ruby` était en réalité déjà autorisée, et la première exécution a plutôt échoué sur une version d'action épinglée dont l'index Ruby embarqué précédait la 3.2.11. L'épinglage a été avancé et l'exécution a réussi. Aucune de ces deux fermetures ne dit quoi que ce soit sur la séance elle-même, ce qui est précisément le propos de ce tableau.
 
 DR-08 mérite d'être dit clairement, parce qu'une version précédente de cette page la déclarait refermée. Elle ne l'est pas. Le défaut de mise en page côté générateur qui l'avait motivée a bien été trouvé et corrigé, et les 160 blocs de texte des 32 diapositives ont été mesurés par rapport à leur cadre sans aucun débordement, mais **mesurer un binaire n'est pas regarder une diapositive.** Aucun outil de rendu n'a jamais été disponible ici. L'exigence reste ouverte.
 
@@ -100,4 +104,4 @@ Deux vérifications ont été menées avec d'autres outils que ceux prévus. Les
 
 ## Ce qui périme cette page
 
-Relancez les vérifications et redatez cette page lorsque le modèle de contenu change, lorsque le thème ou une dépendance est mis à jour, lorsqu'une répétition a lieu, ou lorsque Pages est activé. Un relevé de validation qui survit à ce qu'il décrit est pire que rien, car il invite exactement à l'hypothèse que cette page cherche à empêcher.
+Relancez les vérifications et redatez cette page lorsque le modèle de contenu change, lorsque le thème ou une dépendance est mis à jour, lorsqu'une répétition a lieu, ou lorsque le flux de publication change. Un relevé de validation qui survit à ce qu'il décrit est pire que rien, car il invite exactement à l'hypothèse que cette page cherche à empêcher.

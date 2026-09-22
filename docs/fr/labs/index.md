@@ -3,7 +3,7 @@ title: Ateliers
 description: Les quatre ateliers pratiques du parcours français, l'oracle indépendant de la langue, les seuils d'abandon et les deux barres d'acceptation.
 lang: fr
 translation_key: labs-index
-parent: Français
+lang_ref: /labs/
 nav_order: 3
 has_children: true
 covers:

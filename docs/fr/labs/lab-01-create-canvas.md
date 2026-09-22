@@ -3,8 +3,8 @@ title: 01 - Créer et utiliser le canevas
 description: Envoyer l'invite de création validée, réviser les dépendances avant toute exécution, puis prouver qu'une action humaine et une action de l'agent portent sur le même état.
 lang: fr
 translation_key: lab-01-create-canvas
+lang_ref: /labs/lab-01-create-canvas/
 parent: Ateliers
-grand_parent: Français
 nav_order: 2
 duration_minutes: 35
 covers:

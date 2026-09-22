@@ -3,8 +3,8 @@ title: Déroulement de la séance
 description: Horloge d'abandon, décomposition par temps fort du bloc principal, encadrement, vagues décalées et règle du retard maximal d'une section.
 lang: fr
 translation_key: facilitator-running-the-session
+lang_ref: /facilitator/running-the-session/
 parent: Trousse d'animation
-grand_parent: Français
 nav_order: 2
 covers:
   - abort-threshold

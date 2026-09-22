@@ -3,6 +3,7 @@ title: Resources
 description: The official source register behind every product claim in this workshop, with retrieval dates and what each source does not establish.
 lang: en
 translation_key: resources
+lang_ref: /fr/ressources/
 nav_order: 5
 covers:
   - synthetic-data-only

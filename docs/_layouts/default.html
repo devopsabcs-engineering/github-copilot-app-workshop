@@ -26,15 +26,22 @@ layout: table_wrappers
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 
-  TWO CHANGES, both required because this is ONE build serving two languages:
+  THREE CHANGES, all required because this is ONE build serving two languages:
 
   1. The html element read `site.lang`, a single site-wide value, so every
      French page declared itself English. It now reads `page.lang` first.
   2. The skip link text was hardcoded English. It now follows the page language.
+  3. A language toggle is rendered at the top of the main content, linking each
+     page to its counterpart through the `lang_ref` front matter key. It lives
+     here rather than in the sidebar because the sidebar is `include_cached` and
+     so cannot vary per page; see _includes/head_custom.html for that argument
+     in full. The link text is in the TARGET language, which makes it a change
+     in the language of a part, so it carries both `lang` and `hreflang`
+     (WCAG 3.1.2), matching the marking discipline in components/nav/links.html.
 
   This override is pinned to theme internals (finding BLD-M7). Upgrading
   just-the-docs past 0.12.0 requires re-copying this file from the new gem and
-  re-applying both changes; it is not a drop-in.
+  re-applying all three changes; it is not a drop-in.
 {%- endcomment -%}
 {%- assign page_lang = page.lang | default: site.lang | default: 'en' -%}
 
@@ -58,6 +65,19 @@ layout: table_wrappers
       {% include components/breadcrumbs.html %}
       <div id="main-content" class="main-content">
         <main>
+          {%- if page.lang_ref -%}
+          {%- if page_lang == 'fr' -%}
+          <nav class="lang-toggle" aria-label="Langue">
+            <span class="lang-toggle-current">Français</span>
+            <a class="lang-toggle-link" href="{{ page.lang_ref | relative_url }}" lang="en" hreflang="en">English</a>
+          </nav>
+          {%- else -%}
+          <nav class="lang-toggle" aria-label="Language">
+            <span class="lang-toggle-current">English</span>
+            <a class="lang-toggle-link" href="{{ page.lang_ref | relative_url }}" lang="fr" hreflang="fr">Français</a>
+          </nav>
+          {%- endif -%}
+          {%- endif -%}
           {% if site.heading_anchors != false %}
             {% include vendor/anchor_headings.html html=content beforeHeading="true" anchorBody="<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\"><use xlink:href=\"#svg-link\"></use></svg>" anchorClass="anchor-heading" anchorAttrs="aria-labelledby=\"%html_id%\"" %}
           {% else %}

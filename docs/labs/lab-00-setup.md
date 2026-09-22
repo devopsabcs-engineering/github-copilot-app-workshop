@@ -3,6 +3,7 @@ title: "Lab 00: Agree on the Plan"
 description: Open a session against the approved project, work in Plan mode, and change the plan before anything is generated.
 lang: en
 translation_key: lab-00-setup
+lang_ref: /fr/labs/lab-00-setup/
 parent: Labs
 nav_order: 1
 duration_minutes: 15

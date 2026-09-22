@@ -3,6 +3,7 @@ title: Preflight Gates
 description: Pass or fail gates with a named owner, recorded evidence, a date, and a dated go or no-go decision per language.
 lang: en
 translation_key: facilitator-preflight
+lang_ref: /fr/facilitator/preflight/
 parent: Facilitator Kit
 nav_order: 1
 covers:

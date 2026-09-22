@@ -3,6 +3,7 @@ title: Facilitator Kit
 description: Gates, run sheet, and recovery artifacts for delivering the 90-minute GitHub Copilot app workshop.
 lang: en
 translation_key: facilitator-index
+lang_ref: /fr/facilitator/
 nav_order: 6
 has_children: true
 covers:

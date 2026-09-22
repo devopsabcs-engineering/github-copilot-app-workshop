@@ -3,6 +3,7 @@ title: Labs
 description: The shared lab contract, the delta-and-invariant oracle, the abort thresholds, and the two acceptance bars used across all four labs.
 lang: en
 translation_key: labs-index
+lang_ref: /fr/labs/
 nav_order: 3
 has_children: true
 covers:

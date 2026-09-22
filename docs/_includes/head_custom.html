@@ -1,0 +1,73 @@
+{%- comment -%}
+  Per-page language scoping for the shared sidebar, plus the styling for the
+  English/French toggle rendered by _layouts/default.html.
+
+  WHY THIS IS CSS AND JAVASCRIPT RATHER THAN LIQUID: components/site_nav.html is
+  pulled in with `include_cached`, so the sidebar markup is rendered ONCE for the
+  whole site and the identical HTML is reused on every page. A Liquid condition
+  inside the nav that compared a link's language against `page.lang` would be
+  evaluated while building the first page and then served unchanged to every page
+  in the other language, producing a sidebar that is correct in one language and
+  silently wrong in the other. Deciding per page therefore has to happen after the
+  cached markup is emitted, which means here, in the page's own head.
+
+  The hook is the `lang` attribute that docs/_includes/components/nav/links.html
+  already puts on every `a.nav-list-link`. That attribute is marked ABSOLUTELY
+  (the link's own target language, never relative to the page being rendered) for
+  the same caching reason, which is exactly what makes it usable here. Keying off
+  href prefixes instead would duplicate a fact the markup already states, and
+  would break the WCAG 3.1.2 marking if the two ever drifted apart.
+
+  GRACEFUL DEGRADATION: where CSS `:has()` is supported the rule applies at first
+  paint, with no flash of the other language. Where it is not, the
+  DOMContentLoaded fallback adds `lang-hidden` instead. With neither `:has()` nor
+  JavaScript, both language trees stay visible in the sidebar. That is a cosmetic
+  regression rather than a broken site: every link still resolves, every page
+  stays reachable, and each link still declares its own language.
+{%- endcomment -%}
+{%- assign page_lang = page.lang | default: site.lang | default: 'en' -%}
+{%- if page_lang == 'fr' -%}
+  {%- assign other_lang = 'en' -%}
+{%- else -%}
+  {%- assign other_lang = 'fr' -%}
+{%- endif -%}
+<style>
+  /* Hide the other language's nav entries. Matching the DIRECT child link means a
+     hidden top-level item takes its whole subtree with it. */
+  #site-nav .nav-list-item:has(> a.nav-list-link[lang="{{ other_lang }}"]) { display: none; }
+  #site-nav .nav-list-item.lang-hidden { display: none !important; }
+
+  /* Language toggle. Layout only: it sets no colour of its own, so it inherits
+     the theme's verified AA text and link colours rather than introducing a new
+     pairing that would have to be re-measured. The underline keeps the link
+     distinguishable without relying on colour alone (WCAG 1.4.1). */
+  .lang-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0 0 1.5rem;
+    font-size: 0.875rem;
+  }
+
+  .lang-toggle-current {
+    font-weight: 600;
+  }
+
+  .lang-toggle-link {
+    text-decoration: underline;
+  }
+</style>
+<script>
+  // Fallback for browsers without CSS :has() support. `:scope >` has far wider
+  // support than `:has()`, so this reproduces the direct-child semantics above.
+  document.addEventListener('DOMContentLoaded', function () {
+    var otherLang = {{ other_lang | jsonify }};
+    document.querySelectorAll('#site-nav .nav-list-item').forEach(function (item) {
+      var link = item.querySelector(':scope > a.nav-list-link');
+      if (link && link.getAttribute('lang') === otherLang) {
+        item.classList.add('lang-hidden');
+      }
+    });
+  });
+</script>
