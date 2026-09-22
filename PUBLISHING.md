@@ -17,6 +17,8 @@ The publishing workflow in `.github/workflows/pages.yml` can build and validate 
 
 This file records what was confirmed against the live repository on 2026-09-22, what remains unconfirmed, and the one risk that has to be accepted in writing before delivery depends on this path.
 
+The owner steps below have since been completed. They are kept rather than deleted, because the record of what had to be done by hand is what makes the remaining single point of failure legible.
+
 ## Confirmed repository facts
 
 Read from the GitHub REST API on 2026-09-22 with an authenticated token.
@@ -24,11 +26,13 @@ Read from the GitHub REST API on 2026-09-22 with an authenticated token.
 | Fact | Value | Source |
 |------|-------|--------|
 | Default branch | `main` | `GET /repos/devopsabcs-engineering/github-copilot-app-workshop` |
-| Repository visibility | `internal` | same |
+| Repository visibility | `public` | same |
 | Organization plan | `enterprise` | `GET /orgs/devopsabcs-engineering` |
-| Pages enabled | **No** (`has_pages: false`) | same repository response |
-| Pages configuration | **Absent** (`GET /repos/.../pages` returns 404) | Pages API |
-| Environments defined | **None** | `GET /repos/.../environments` |
+| Pages enabled | **Yes** (`has_pages: true`) | same repository response |
+| Pages build type | `workflow`, source branch `main` | `GET /repos/.../pages` |
+| Published site URL | `https://devopsabcs-engineering.github.io/github-copilot-app-workshop/` | same |
+| Site visibility | Public (`public: true`), HTTPS enforced | same |
+| Environments defined | `github-pages` | `GET /repos/.../environments` |
 | Actions enabled | Yes | `GET /repos/.../actions/permissions` |
 | Allowed actions | `selected`, with an allow-list | same |
 | GitHub-owned actions allowed | Yes | `GET /repositories/1380813984/actions/permissions/selected-actions` |
@@ -37,45 +41,47 @@ Read from the GitHub REST API on 2026-09-22 with an authenticated token.
 
 The default branch matches the branch the deploy job is gated to, so no workflow change is needed for branch alignment.
 
-## What a repository owner must do
+## What a repository owner had to do
 
-None of the following can be performed by the workflow, by its `GITHUB_TOKEN`, or by any change to this repository's files.
+None of the following could be performed by the workflow, by its `GITHUB_TOKEN`, or by any change to this repository's files. Steps 1 and 2 are done. Steps 3 and 4 are not.
 
 ### 1. Enable Pages with the Actions source
 
 In **Settings, Pages, Build and deployment**, set **Source** to **GitHub Actions**.
 
-This is blocking and it is not optional. The workflow calls `actions/configure-pages`, which runs with `enablement: false` and therefore only *reads* the Pages configuration. Enabling Pages requires a token other than `GITHUB_TOKEN`, as that action's own `action.yml` states. Pages is currently not enabled, so the first run of this workflow will fail at the **Setup Pages** step until an owner completes this step.
+This is blocking and it is not optional. The workflow calls `actions/configure-pages`, which runs with `enablement: false` and therefore only *reads* the Pages configuration. Enabling Pages requires a token other than `GITHUB_TOKEN`, as that action's own `action.yml` states.
 
-That failure reaches pull request runs too, because the base path is read from the Pages configuration on every run rather than hardcoded. That coupling is deliberate: one source for the base path, and no silent fallback to a guessed value. The consequence is that content validation on pull requests is unavailable until Pages is enabled.
+**Done.** The Pages API now reports `build_type: workflow` on branch `main`, and the workflow has completed the **Setup Pages** step on four successful runs.
+
+The base path is still read from the Pages configuration on every run rather than hardcoded. That coupling is deliberate: one source for the base path, and no silent fallback to a guessed value. The consequence, recorded as follow-on item WI-14, is that pull request validation stays coupled to Pages remaining enabled.
 
 ### 2. Allow the one third-party action
 
 The allow-list permits all GitHub-owned actions, which covers `actions/checkout`, `actions/setup-node`, `actions/configure-pages`, `actions/upload-pages-artifact`, and `actions/deploy-pages`.
 
-It does **not** list `ruby/setup-ruby`, which the workflow needs to install Ruby and restore the bundle. Unless `ruby` is an allowed verified creator, the workflow will be blocked at the **Setup Ruby** step. Confirm this before the first run, and if it is blocked, add the exact pinned reference to the allow-list rather than a mutable tag:
+It does **not** list `ruby/setup-ruby`, which the workflow needs to install Ruby and restore the bundle. The concern was that the workflow would be blocked at the **Setup Ruby** step.
+
+**Done, by observation rather than by configuration.** The step runs. It installed `ruby 3.2.11` on the `ubuntu-24.04` runner and the allow-list did not reject it, which means `ruby` is reachable as a verified creator. The pin has since moved to a release that knows Ruby 3.2.11:
 
 ```text
-ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4
+ruby/setup-ruby@e8944e80fb94b20106697132f8c20c665fab29e9
 ```
-
-This action and its pin come from the official GitHub Pages Jekyll starter workflow, which pins the same commit.
 
 ### 3. Configure the deployment environment
 
-The `github-pages` environment does not exist yet. It is created on first deployment, but its protection rules are not set for you. An owner should restrict its deployment branches to `main`, and decide whether a required reviewer is wanted before a customer-facing site updates.
+The `github-pages` environment now exists, created on first deployment. Its protection rules are still not set for you. An owner should restrict its deployment branches to `main`, and decide whether a required reviewer is wanted before a customer-facing site updates. Neither has been done.
 
 ### 4. Confirm the intended visibility before enabling deployment
 
 A private or internal repository does not by itself produce a private site. Publishing can expose the material to a wider audience than the repository does.
 
-This repository is `internal` and the organization is on an `enterprise` plan, so access control on the published site is available in principle. It has not been verified in practice, because Pages is not enabled and no site exists to inspect. Until an owner confirms both the intended audience and the visibility actually applied, deployment stays disabled.
+The repository is now `public` and the Pages API reports `public: true`, so the published site is readable by anyone on the internet. That is the visibility actually applied, not an assumption about it. No owner has recorded that this matches the intended audience.
 
 ## The resolved site path
 
-The expected project-site base path is `/github-copilot-app-workshop`, which is the value every local build and the content validator's default already use.
+The project-site base path is `/github-copilot-app-workshop`, which is the value every local build and the content validator's default already use.
 
-This is expected, not confirmed, because no Pages site exists yet. It does not need to be corrected by hand if it turns out to differ: the workflow passes `steps.pages.outputs.base_path` to both Jekyll and the validator, so the assertion checks the real deployed path rather than this assumption.
+This is now confirmed rather than expected: the deployed site answers at that path, and the workflow passes `steps.pages.outputs.base_path` to both Jekyll and the validator, so each run asserts the real deployed path rather than this assumption.
 
 ## Actions is a single point of failure, and that must be accepted in writing
 
@@ -98,14 +104,13 @@ Until that row is filled in, treat the published site as unavailable for deliver
 
 ## What has not been verified
 
-* No run of the publishing workflow has been observed. Its YAML parses, its action pins resolve to real commits, and its step order was asserted, but nothing has executed.
-* Pages eligibility, the real site URL, and the applied site visibility are all unconfirmed, because Pages is not enabled.
 * The organization-level Actions policy could not be read with the available token, which returned HTTP 403. Only the repository-level policy above was readable, and an organization policy can be stricter.
-* Whether `ruby` is an allowed verified creator was not confirmed.
-* Every validation recorded on the validation status page was run against a **local** build. A local build exercises the same generator, the same validators, and the same Jekyll invocation, but it does not exercise the runner, the action pins, the Pages configure step, or the artifact upload. None of those has ever executed.
+* The `github-pages` environment has no protection rules. Any push to `main` deploys to a public site with no review.
+* No owner has confirmed that a publicly readable site is the intended audience, or accepted the single point of failure below in writing.
+* The site has been observed to build, deploy, and serve. Nothing about the workshop **session** follows from that: pacing, the reference canvas, venue concurrency, and the network and licensing gates all remain open, and are listed on the validation status page.
 
 ## Related records
 
-* `docs/facilitator/validation-status.md`, published at `/facilitator/validation-status/`, for what was machine-verified, what was human-judged, what was not verified at all, and the full list of open blocking gates. The two publishing gates recorded here, Pages enablement and the `ruby/setup-ruby` allow-list entry, appear in that list as DR-09 and DR-10.
+* `docs/facilitator/validation-status.md`, published at `/facilitator/validation-status/`, for what was machine-verified, what was human-judged, what was not verified at all, and the full list of open blocking gates. The two publishing gates recorded here, Pages enablement and the `ruby/setup-ruby` allow-list entry, were tracked there as DR-09 and DR-10 and are now closed.
 * `SUPPLY-CHAIN.md` for dependency pins and the recorded production audit.
 * `.github/workflows/pages.yml` for the pinned action set and its retrieval provenance.

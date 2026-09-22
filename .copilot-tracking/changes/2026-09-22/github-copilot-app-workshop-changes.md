@@ -12,6 +12,8 @@ Builds a bilingual ninety-minute GitHub Copilot app workshop: a root README agen
 
 ### Added
 
+* CONTRIBUTING.md - local preview, deck build, and validation commands, plus the three areas that should not be changed casually.
+* scripts/serve-site.mjs - cross-platform wrapper around `bundle exec jekyll serve` that points Bundler at `docs/Gemfile` and prints the base-path URL to open.
 * package.json - ESM Node workspace, engines floor, and the build, validate, and audit script chain.
 * package-lock.json - committed lockfile, 21 packages, registry URLs normalized to the public registry.
 * .gitignore - ignores node_modules/, _site/, .jekyll-cache/, and generated decks; Gemfile.lock and package-lock.json deliberately tracked.
@@ -60,10 +62,27 @@ Builds a bilingual ninety-minute GitHub Copilot app workshop: a root README agen
 * docs/facilitator/validation-status.md, docs/fr/facilitator/validation-status.md - corrected two statements the deployment had falsified, closed DR-09 and DR-10 in prose, recorded the published-site and language-toggle verifications, and refreshed the accessibility figures re-measured against production.
 * scripts/validate-content.mjs - added `validateRenderedNavigation`, a post-build check reading every built HTML document to assert the per-language sidebar scoping that no source-level check can see.
 * docs/facilitator/validation-status.md, docs/fr/facilitator/validation-status.md - restated the navigation-scoping row so it credits a permanent validator check rather than a one-off inspection, keeping the browser observation separate.
+* package.json - added a `serve` script.
+* README.md - replaced the paragraph asserting the site does not resolve with what the Pages API actually reports, and pointed at the new contributor guide.
+* PUBLISHING.md - rewrote the observed-facts table, the four owner steps, the resolved site path, and the not-verified list against the live repository; left the single point of failure and the unsigned risk acceptance untouched.
+* docs/facilitator/validation-status.md, docs/fr/facilitator/validation-status.md - added machine-verified rows for the cascade check, the local preview, the runner pins, and the deck render; rewrote the deck and degraded-sidebar entries; narrowed DR-08 from "never rendered" to "rendered, largely unreviewed".
 
 ### Removed
 
 ## Additional or Deviating Changes
+
+* A scripted local preview was added after the sibling repositories were consulted, recorded as DD-16.
+  * Those repositories document `bundle exec jekyll serve` in `CONTRIBUTING.md`, but their Gemfile sits at the repository root. Here it is in `docs/`, so the bare command fails and an npm script cannot set `BUNDLE_GEMFILE` portably. `scripts/serve-site.mjs` is the smallest wrapper that makes one command work on both shells.
+  * Verified rather than assumed: both language home pages, a deep facilitator page, and a `.pptx` download returned HTTP 200, and the toggle round-tripped English to French and back in a real browser against the local server.
+  * The base path matches production, so the bare host returns 404 by design. The script prints the URL to open, and `CONTRIBUTING.md` says so explicitly.
+* The publishing record was rewritten against the live repository, recorded as DD-17.
+  * `PUBLISHING.md` and one `README.md` paragraph still said Pages was not enabled, the repository was `internal`, and the published URLs did not resolve. All three had been false since the first deployment.
+  * Replacement facts were read from the Pages, repository, and environments APIs. Two owner steps remain genuinely open and are now stated as such: environment protection rules, and written acceptance of the Actions single point of failure.
+* A renderer was found and DR-08 was narrowed rather than closed.
+  * PowerPoint 16.0 is installed here and reachable through COM. Both decks opened, each reporting 16 slides on a 16:9 stage, and all 32 slides exported to PNG.
+  * Three were then looked at. Nothing overflowed, nothing clipped, and the French diacritics rendered as letters. Twenty-nine were rendered without being examined and no curriculum owner has reviewed any of them, so the gate stays open in its narrower form. An earlier pass in this project once closed DR-08 on a render that never happened; that mistake is not being repeated in the other direction by closing it on a render nobody reviewed.
+  * The rendered slides surfaced WI-24, a straight-versus-typographic apostrophe difference between the decks and the site prose.
+* Three follow-on items were closed by measurement rather than by code: WI-16 from the runner step logs, WI-21 from the two reproducible degraded sidebar paths, and WI-23 from a `getComputedStyle` read on a live page. WI-25 was opened for the unprotected `github-pages` environment.
 
 * ID-01's recorded rationale was void on verification and the planning log was corrected.
   * Every pptxgenjs 3.x release from 3.0.0 through 3.12.0 declares `https@^1.0.0`, so pinning the previous major does not avoid the placeholder package. The pin stands, but on different grounds, and the `https` question is answered on its own terms in SUPPLY-CHAIN.md rather than by repeating a claim that does not hold.

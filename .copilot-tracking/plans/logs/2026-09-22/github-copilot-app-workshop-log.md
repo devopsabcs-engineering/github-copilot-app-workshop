@@ -104,15 +104,25 @@ The product highs referenced above are the seven behavioral and product-claim it
   * Implementation differs: 15,677 passing axe-core checks rather than 16,101, and 56 incomplete contrast nodes rather than 75.
   * Rationale: half the navigation links are now hidden by CSS and axe does not evaluate hidden nodes, so the drop is expected and the verdicts are unchanged at zero violations across 56 runs. The re-measurement was run against the published site rather than a local build. Two statements on the validation status pages had also been falsified by the deployment, including a bullet asserting the site was not published; both were corrected the same day the facts changed.
 
+* DD-16: A scripted local preview was added, recorded 2026-09-22.
+  * Plan specifies: the site is built with a documented Jekyll command and published through Actions. No local server was planned.
+  * Implementation differs: `npm run serve` now wraps `bundle exec jekyll serve` through `scripts/serve-site.mjs`, and `CONTRIBUTING.md` records the preview, deck, and validation commands.
+  * Rationale: sibling workshop repositories document `bundle exec jekyll serve` in `CONTRIBUTING.md`, but their Gemfile is at the repository root. Here it is in `docs/`, so the bare command fails without `BUNDLE_GEMFILE`, and an npm script cannot set that portably across cmd.exe and sh. Every local preview in this project so far has been an ad-hoc temporary server, which is the same disappearing-evidence problem DD-15 was raised against. The wrapper was verified by request rather than assumed: both language home pages, a deep facilitator page, and a `.pptx` download returned HTTP 200, and the toggle round-tripped in a real browser against the local server.
+
+* DD-17: The publishing record was rewritten against the live repository, recorded 2026-09-22.
+  * Plan specifies: `PUBLISHING.md` records what an owner must enable before the site can deploy.
+  * Implementation differs: it now records what an owner did enable, what the API reports, and the two owner steps still outstanding.
+  * Rationale: the file, and a paragraph in `README.md`, still asserted that Pages was not enabled, that the repository was `internal`, and that the published URLs did not resolve. All three had been false since the first deployment. A prerequisites document that outlives its prerequisites misleads in the one direction this repository is built to avoid. The replacement facts were read from the Pages, repository, and environments APIs rather than inferred. The single point of failure and the unsigned risk acceptance were left exactly as they were, because neither has changed.
+
 * DD-15: A `validateRenderedNavigation` check was added, recorded 2026-09-22.
   * Plan specifies: navigation integrity is validated from front matter, and the built site is read only to assert the base path.
   * Implementation differs: the validator now also reads every built HTML document and asserts, per page, that the head hides the other language and not its own, that every sidebar link declares a language so the rule can match it, that no unexpected language appears, and that the toggle link names the other language in both `lang` and `hreflang`.
   * Rationale: the sidebar is emitted once and cached, so the per-page scoping lives entirely in CSS that no source-level check can see. The counts that proved the feature worked came from scripts that were deleted the same day, which is exactly the class of evidence this repository has already been burned by. Four deliberate injections into a built page were each detected with exit 1 and then reverted, so the check is known to be capable of failing rather than assumed to be.
 
-* DR-08: Manual visual render of both decks was not performed, recorded during Step 5.3 and reaffirmed during Step 8.3.
+* DR-08: Manual visual render of both decks was not performed, recorded during Step 5.3, reaffirmed during Step 8.3, and narrowed 2026-09-22.
   * Source: Implementation Phase 5, reopened in Implementation Phase 8.
-  * Reason: No PowerPoint or equivalent renderer exists in the implementation environment. An intermediate Phase 8 pass recorded this gate as closed on the strength of a render that never happened; the final reconciliation pass reversed that claim. Deck geometry was measured from the generated binaries, one hundred sixty text shapes across thirty-two slides, with no overflow found. Measuring a binary is not looking at a slide.
-  * Impact: medium. Blocking for delivery. Slides 03 and 07 carry the longest bodies, slide 14 the longest titles, slide 12 the longest French kicker, and slide 01 the longest French footer.
+  * Reason: No renderer was believed to exist in the implementation environment. An intermediate Phase 8 pass recorded this gate as closed on the strength of a render that never happened; the final reconciliation pass reversed that claim. A later probe found PowerPoint 16.0 installed and reachable through COM. Both decks opened, each reporting 16 slides on a 16:9 stage, and all 32 slides exported to PNG. Three were then looked at: the English opening and closing slides, and a mid-deck French slide carrying accented characters. Nothing overflowed, nothing clipped, and the diacritics rendered as letters.
+  * Impact: medium. Still blocking for delivery, but narrower. The capability half is closed. Twenty-nine slides were rendered without being examined, and no design review by a curriculum owner has taken place. Producing 32 images is not reviewing a deck.
 
 * DD-08: Navigation language marking is absolute, not relative, recorded during Step 2.3.
   * Research recommends: mark each foreign-language nav link, which reads naturally as marking a link when its language differs from the current page.
@@ -249,6 +259,7 @@ Items identified during planning that fall outside current scope.
 * WI-16: Runner version pins — the workflow pins the exact Ruby and Node versions verified locally, which are unverified against the hosted runner manifests. Confirm availability or fall back to the minor line. (low)
   * Source: Phase 7, Step 7.2.
   * Dependency: none.
+  * **Closed 2026-09-22 by observation.** The Setup Node and Setup Ruby step logs of the deploy run show `ubuntu-24.04` acquiring `node v26.7.0` and reporting `ruby 3.2.11`. Both pins are reachable on the hosted image. This says nothing about future runner images, which is what re-dating the validation page is for.
 * WI-17: The French downloads page links only the French deck while the English page links both. Coherent by design, but it deserves an explicit decision rather than an inherited one. (low)
   * Source: Phase 7, Step 7.1.
   * Dependency: none.
@@ -264,6 +275,7 @@ Items identified during planning that fall outside current scope.
 * WI-21: Verify the sidebar in a browser without `:has()` support and with JavaScript disabled. The CSS rule is the primary mechanism and the script is a documented fallback, but neither degraded path was exercised; a reader in that position sees both languages, which is the pre-change behaviour rather than a broken one. (low)
   * Source: language scoping phase, 2026-09-22.
   * Dependency: none.
+  * **Closed 2026-09-22 as far as it can be.** Both reproducible degraded paths were exercised on a live page. With JavaScript disabled, zero `lang-hidden` classes were applied and no link of the other language was visible, so the rule alone suffices. With the `:has()` rule deleted at runtime, the script alone hid the same 14 items. A browser that genuinely lacks `:has()` cannot be obtained here and the current engine cannot emulate its absence, so that remains unobserved and is recorded as such on the validation pages rather than glossed.
 * WI-22: Consider promoting the rendered-sidebar language census into the validator, the same argument as WI-15. The per-language link counts were measured from built HTML and from a live browser by temporary scripts that do not survive, so a regression that reintroduces cross-language links would pass `validate:all`. (medium)
   * Source: language scoping phase, 2026-09-22.
   * Dependency: WI-15, which would share the same harness.
@@ -272,6 +284,15 @@ Items identified during planning that fall outside current scope.
 * WI-23: The rendered navigation check asserts that the hiding rule is present in each page's head. It does not assert that the rule wins the cascade, because the validator reads markup rather than computed style. Closing that gap needs a headless browser in the validation chain, which would add a browser dependency to a repository that currently has none. (low)
   * Source: language scoping phase, 2026-09-22.
   * Dependency: none.
+  * **Closed 2026-09-22 by measurement, not by automation.** `getComputedStyle` on a live published page returned `display: none` for exactly the 14 other-language items, so the rule is not overridden by anything the theme loads after it. The gap in `validate:all` is unchanged and deliberate: adding a browser to the validation chain is a dependency this repository declines to take for one assertion. A regression here would be caught by the measurement being re-run, which is what re-dating the validation page requires.
+
+* WI-24: The generated decks use straight apostrophes in French body text while the site prose uses typographic ones. Visible in the rendered slides. Deciding either way means touching the content model and re-running every parity check, so it is worth an explicit decision rather than a drive-by change. (low)
+  * Source: deck render, 2026-09-22.
+  * Dependency: none.
+
+* WI-25: The `github-pages` environment has no protection rules, so any push to `main` deploys to a publicly readable site with no review. Decide whether to restrict deployment branches and require a reviewer. (medium)
+  * Source: publishing record refresh, 2026-09-22.
+  * Dependency: owner decision.
 
 ## User Decisions
 

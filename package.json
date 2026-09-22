@@ -9,6 +9,7 @@
     "node": ">=20.11.0"
   },
   "scripts": {
+    "serve": "node scripts/serve-site.mjs",
     "build:decks": "node scripts/build-workshop-deck.mjs",
     "validate:content": "node scripts/validate-content.mjs",
     "validate:decks": "node scripts/validate-decks.mjs",

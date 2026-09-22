@@ -12,13 +12,15 @@ Ninety minutes, one spoken language per cohort, and one fictional Team Task Boar
 > [!IMPORTANT]
 > Every minute value in this agenda is provisional. No timed rehearsal has been run, so the pacing rests on an estimate rather than an observation. Two timed dry runs per language and a staged reference canvas are blocking gates. Do not offer a delivery date until both close. The [facilitator kit](https://devopsabcs-engineering.github.io/github-copilot-app-workshop/facilitator/) records the current state of every gate.
 
-Published material, at URLs that stay provisional until the Pages visibility and base path are verified:
+Published material:
 
 * English site: <https://devopsabcs-engineering.github.io/github-copilot-app-workshop/>
 * French site: <https://devopsabcs-engineering.github.io/github-copilot-app-workshop/fr/>
 * Deck downloads: <https://devopsabcs-engineering.github.io/github-copilot-app-workshop/downloads/>
 
-Those URLs do not resolve yet. GitHub Pages is not enabled on this repository, and the publishing path depends entirely on GitHub Actions with no fallback. [PUBLISHING.md](PUBLISHING.md) records what an owner must enable, what was confirmed against the live repository, and the single point of failure that has to be accepted in writing before any delivery depends on the published site.
+Those URLs resolve. GitHub Pages is enabled with the Actions source, the site is publicly readable, and the base path is asserted against the deployed configuration on every run. The publishing path still depends entirely on GitHub Actions with no fallback. [PUBLISHING.md](PUBLISHING.md) records what an owner enabled, what remains unconfigured, and the single point of failure that has to be accepted in writing before any delivery depends on the published site.
+
+To preview the site on your own machine, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Audience organizations named in delivery material are illustrative. Nothing here claims endorsement, approval, or compliance, and no organization-specific policy has been assessed. Work with synthetic data only.
 
