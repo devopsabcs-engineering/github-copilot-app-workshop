@@ -62,15 +62,52 @@ The product highs referenced above are the seven behavioral and product-claim it
 
 ### Plan Deviations from Research
 
-* DR-09: GitHub Pages is not enabled on this repository, recorded during Step 7.3.
+* DR-09: GitHub Pages is not enabled on this repository, recorded during Step 7.3. **Closed 2026-09-22.**
   * Source: Implementation Phase 7, live repository query returning `has_pages: false` and a 404 from the Pages endpoint.
   * Reason: Enabling Pages with the Actions source is an owner action that code cannot perform.
   * Impact: high. The configure step fails on the first workflow run, including pull request runs, because the base path is read on every run rather than hardcoded. That coupling is deliberate; a literal fallback would reintroduce BLD-H1.
+  * Closure: Pages was enabled with the Actions source and the site is served at `https://devopsabcs-engineering.github.io/github-copilot-app-workshop/`. Fifteen live URLs were requested and all returned HTTP 200, including both deck downloads, with no href leaking a `/docs/` prefix.
 
-* DR-10: The `ruby/setup-ruby` action is absent from the repository Actions allow-list, recorded during Step 7.3.
+* DR-10: The `ruby/setup-ruby` action is absent from the repository Actions allow-list, recorded during Step 7.3. **Closed 2026-09-22 by observation, and the original diagnosis was wrong.**
   * Source: Implementation Phase 7, live repository query returning `allowed_actions: "selected"` with GitHub-owned actions permitted and no third-party entry for this action.
   * Reason: Allow-list membership is an owner action. The organization-level policy could not be read, returning HTTP 403, so only the repository level is confirmed.
   * Impact: high. The build job cannot provision Ruby until this is resolved. Remediation is recorded in PUBLISHING.md.
+  * Closure: the action was already permitted, carrying `verified_allowed: true`, so no allow-list change was ever needed. The 403 on the organization policy meant the gap could not be ruled out, not that it existed. The first run failed for an unrelated reason and is recorded as DD-09.
+
+* DD-09: The `ruby/setup-ruby` pin was moved forward from the starter-workflow SHA, recorded 2026-09-22.
+  * Plan specifies: pin every action by the verified commit SHA taken from the GitHub starter workflow.
+  * Implementation differs: the pin is v1.325.0 at `e8944e80fb94b20106697132f8c20c665fab29e9`.
+  * Rationale: the starter-workflow revision bundled a Ruby build index that predated 3.2.11 and failed outright on the pinned interpreter version. Downgrading Ruby to match a stale index would have desynchronized CI from the locally verified interpreter, so the action pin moved instead. Still a full-length SHA with a tag comment, so DD-04 is unaffected.
+
+* DD-10: The French navigation tree was flattened to top level, recorded 2026-09-22.
+  * Plan specifies: nothing. The plan never addressed the shape of the French sidebar relative to the English one.
+  * Implementation differs: the six French section entries are now siblings at top level, matching English exactly, rather than children of a `Français` parent.
+  * Rationale: the user asked for a language toggle where the sidebar shows only the selected language, modeled on a sibling repository. With French nested one level deeper, the toggle would have moved a reader between structurally dissimilar sidebars, so the feature required the flattening. The French home page is titled `Accueil` rather than `Atelier` because `Atelier` and `Ateliers` differ by one character and would have sat adjacent; the mild asymmetry against `Workshop` is the lesser problem, and it is recorded as ID-03.
+
+* DD-11: The navigation validator's grouping key became language-aware, recorded 2026-09-22.
+  * Plan specifies: a navigation check grouping pages by grandparent and parent.
+  * Implementation differs: page language is now part of the key.
+  * Rationale: flattening French put both trees at the same nesting depth, so the original key merged English and French entries into one group and reported six false collisions. This is a correction rather than a relaxation. Two pages colliding within one language still fail, which was proved by injecting a same-language collision and observing exit 1.
+
+* DD-12: Two validator summary lines were de-verdicted, recorded 2026-09-22.
+  * Plan specifies: nothing. This was found while making DD-11.
+  * Implementation differs: `validateNavigation` printed `Navigation OK: ... no parent or nav_order conflicts` unconditionally, including on the very run that reported a collision. Both that line and its counterpart now report measured counts and leave the verdict to the exit code.
+  * Rationale: a tool that announces its own pass regardless of what it found is the same defect class as the fabricated verification claim caught in Phase 8. Fixing it was in scope on those grounds even though it was outside the requested feature.
+
+* DD-13: A `validateLanguageToggle` check was added, recorded 2026-09-22.
+  * Plan specifies: nothing.
+  * Implementation differs: every page must declare `lang_ref`, the target must resolve to a real page in the other language, and the mapping must be symmetric.
+  * Rationale: the toggle is rendered from front matter that nothing else reads, so a broken or asymmetric `lang_ref` would have been invisible until a reader clicked it. It runs in full mode only, matching `validateCounterparts`, because a subtree validated in isolation cannot see its counterpart.
+
+* DD-14: Published accessibility figures were revised downward after re-measurement, recorded 2026-09-22.
+  * Plan specifies: the figures recorded during Phase 8 against the locally built site.
+  * Implementation differs: 15,677 passing axe-core checks rather than 16,101, and 56 incomplete contrast nodes rather than 75.
+  * Rationale: half the navigation links are now hidden by CSS and axe does not evaluate hidden nodes, so the drop is expected and the verdicts are unchanged at zero violations across 56 runs. The re-measurement was run against the published site rather than a local build. Two statements on the validation status pages had also been falsified by the deployment, including a bullet asserting the site was not published; both were corrected the same day the facts changed.
+
+* DD-15: A `validateRenderedNavigation` check was added, recorded 2026-09-22.
+  * Plan specifies: navigation integrity is validated from front matter, and the built site is read only to assert the base path.
+  * Implementation differs: the validator now also reads every built HTML document and asserts, per page, that the head hides the other language and not its own, that every sidebar link declares a language so the rule can match it, that no unexpected language appears, and that the toggle link names the other language in both `lang` and `hreflang`.
+  * Rationale: the sidebar is emitted once and cached, so the per-page scoping lives entirely in CSS that no source-level check can see. The counts that proved the feature worked came from scripts that were deleted the same day, which is exactly the class of evidence this repository has already been burned by. Four deliberate injections into a built page were each detected with exit 1 and then reverted, so the check is known to be capable of failing rather than assumed to be.
 
 * DR-08: Manual visual render of both decks was not performed, recorded during Step 5.3 and reaffirmed during Step 8.3.
   * Source: Implementation Phase 5, reopened in Implementation Phase 8.
@@ -204,10 +241,11 @@ Items identified during planning that fall outside current scope.
   * Dependency: none.
 * WI-14: Pull request validation is coupled to Pages enablement, because the base path is read from the configure step on every run. Decide whether to decouple it, without reintroducing a hardcoded base path. (medium)
   * Source: Phase 7, Step 7.2.
-  * Dependency: DR-09.
+  * Dependency: DR-09. **Now unblocked; DR-09 closed 2026-09-22.**
 * WI-15: Promote the rendered-sidebar assertion into the validator. The permanent navigation check added during Step 7.1 operates on front matter; the built-HTML sidebar check ran from a temporary script and does not survive. (medium)
   * Source: Phase 7, Step 7.1.
   * Dependency: none.
+  * **Closed 2026-09-22 by DD-15.** `validateRenderedNavigation` now reads the built site on every full run, so the sidebar assertion no longer depends on a script that is deleted afterwards.
 * WI-16: Runner version pins — the workflow pins the exact Ruby and Node versions verified locally, which are unverified against the hosted runner manifests. Confirm availability or fall back to the minor line. (low)
   * Source: Phase 7, Step 7.2.
   * Dependency: none.
@@ -219,6 +257,20 @@ Items identified during planning that fall outside current scope.
   * Dependency: none.
 * WI-19: Consider a shared Jekyll include for the four repeated audience guardrail statements, which are currently duplicated verbatim across more than twenty pages. The `covers:` marker would still need declaring per page. (low)
   * Source: Phase 3, Step 3.2.
+  * Dependency: none.
+* WI-20: Verify the language toggle under an actual screen reader. The toggle landmark, its `lang` and `hreflang` attributes, and the fact that half the sidebar links are CSS-hidden but still present in the document were all confirmed as markup and as computed style, never as announcement. Automated tooling cannot close this. (medium)
+  * Source: language scoping phase, 2026-09-22.
+  * Dependency: none.
+* WI-21: Verify the sidebar in a browser without `:has()` support and with JavaScript disabled. The CSS rule is the primary mechanism and the script is a documented fallback, but neither degraded path was exercised; a reader in that position sees both languages, which is the pre-change behaviour rather than a broken one. (low)
+  * Source: language scoping phase, 2026-09-22.
+  * Dependency: none.
+* WI-22: Consider promoting the rendered-sidebar language census into the validator, the same argument as WI-15. The per-language link counts were measured from built HTML and from a live browser by temporary scripts that do not survive, so a regression that reintroduces cross-language links would pass `validate:all`. (medium)
+  * Source: language scoping phase, 2026-09-22.
+  * Dependency: WI-15, which would share the same harness.
+  * **Closed 2026-09-22 by DD-15.** The static half of the census is now permanent. The browser half is not, and cannot be: `validate:all` reads markup and cannot observe computed style, so a CSS rule that is present but overridden by a later stylesheet would still pass. That residue is the subject of WI-21 rather than of this item.
+
+* WI-23: The rendered navigation check asserts that the hiding rule is present in each page's head. It does not assert that the rule wins the cascade, because the validator reads markup rather than computed style. Closing that gap needs a headless browser in the validation chain, which would add a browser dependency to a repository that currently has none. (low)
+  * Source: language scoping phase, 2026-09-22.
   * Dependency: none.
 
 ## User Decisions
@@ -232,3 +284,6 @@ Decisions recorded from Implementation Decision prompts.
 * ID-02: Theme version, closing OD-06 — pin the current Just the Docs release rather than v0.10.1.
   * Rationale: Recorded recommendation accepted. The WCAG contrast fixes matter for a public-sector audience. Steps 2.2 and 2.3 already require copying the layout and nav overrides from the installed gem rather than from the research record, so the version-specific internals are re-derived rather than assumed.
   * Status: applied by default so implementation could proceed; reversible by changing the Gemfile pin and re-copying the two overrides.
+* ID-03: French home page title — `Accueil` rather than `Atelier`.
+  * Rationale: the phase implementor raised that `Atelier` and `Ateliers` differ by one character and would sit adjacent in the flattened French sidebar. Unambiguous navigation is worth more than a title that mirrors `Workshop` exactly, particularly for a beginner audience under time pressure.
+  * Status: applied; reversible by editing one front matter line.

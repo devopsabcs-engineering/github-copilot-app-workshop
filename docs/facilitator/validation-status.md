@@ -48,7 +48,7 @@ Every item below was executed against this repository on the recorded date and e
 | Deck geometry across every slide | Text and box geometry read from the generated `.pptx` binaries, 160 text shapes across all 32 slides | Every measured string fits its box, no shape placed off-slide |
 | Published site, served from the real base path | 15 live URLs requested from `https://devopsabcs-engineering.github.io/github-copilot-app-workshop/` after the first successful deployment | All 15 returned HTTP 200, including both `.pptx` downloads; no href leaked a `/docs/` prefix, and 37 hrefs carried the base path |
 | Language toggle integrity | `npm run validate:content` | All 28 pages declare a `lang_ref`; every one resolves to a real page in the other language, and every pair round-trips |
-| Navigation scoped to one language | All 28 built pages inspected, plus a real browser at 1280 CSS pixels | Each page's head hides the other language's sidebar items; an English page shows six English top-level links and no French ones, and a French page the mirror |
+| Navigation scoped to one language | `npm run validate:content`, plus a real browser at 1280 CSS pixels | Every one of the 28 built pages carries a head rule hiding the other language and none hides its own; all 28 sidebar links declare a language, so each page leaves exactly 14 visible. In the browser an English page showed six English top-level links and no French ones, and a French page the mirror |
 
 Four accessibility defects were found by these checks and fixed rather than recorded. The first two are related: fixing one created the other.
 

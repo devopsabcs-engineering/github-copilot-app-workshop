@@ -41,6 +41,7 @@ Builds a bilingual ninety-minute GitHub Copilot app workshop: a root README agen
 * scripts/validate-links.mjs - link checker resolving every internal reference to a real file and every fragment to a real id in the built site, proved against a deliberately broken copy carrying a missing page, a missing fragment, a missing deck, and a base path escape.
 * docs/_layouts/table_wrappers.html - table wrapper override making scrolling tables keyboard reachable with a per-page numbered, language-appropriate accessible name.
 * docs/facilitator/validation-status.md, docs/fr/facilitator/validation-status.md - the written record separating what was machine-verified from what was human-judged from what was not verified at all, with the open blocking gates.
+* docs/_includes/head_custom.html - per-page CSS hiding every navigation item whose link declares the other language, with a JavaScript fallback for browsers without `:has()`, and the styling for the language toggle.
 
 ### Modified
 
@@ -50,6 +51,15 @@ Builds a bilingual ninety-minute GitHub Copilot app workshop: a root README agen
 * docs/downloads.md, docs/resources.md, docs/fr/index.md, docs/fr/prerequis.md, docs/fr/labs/index.md, docs/fr/labs/lab-00-setup.md - reconciled `covers:` parity by adding the missing prose first and the marker second.
 * docs/facilitator/index.md, docs/fr/facilitator/index.md - navigation order moved off a colliding value.
 * scripts/validate-content.mjs - added a permanent navigation check covering group membership and order collisions.
+* .github/workflows/pages.yml - moved the `ruby/setup-ruby` pin forward to v1.325.0, whose bundled Ruby index knows 3.2.11.
+* docs/_layouts/default.html - added the English/French toggle landmark rendered from `page.lang_ref`, documented as the third change against the vendored theme layout.
+* scripts/validate-content.mjs - made the navigation grouping key language-aware, de-verdicted two summary lines that printed a pass unconditionally, and added `validateLanguageToggle` asserting every `lang_ref` exists, crosses languages, and round-trips.
+* All twenty-eight page files - added a `lang_ref` pointing at the counterpart page.
+* docs/fr/index.md, docs/fr/prerequis.md, docs/fr/labs/index.md, docs/fr/telechargements.md, docs/fr/ressources.md, docs/fr/facilitator/index.md - removed the `parent: Français` front matter so the French sections sit at top level, and retitled the French home page to `Accueil`.
+* The eight French lab and facilitator child pages - removed `grand_parent: Français`, leaving `parent` untouched.
+* docs/facilitator/validation-status.md, docs/fr/facilitator/validation-status.md - corrected two statements the deployment had falsified, closed DR-09 and DR-10 in prose, recorded the published-site and language-toggle verifications, and refreshed the accessibility figures re-measured against production.
+* scripts/validate-content.mjs - added `validateRenderedNavigation`, a post-build check reading every built HTML document to assert the per-language sidebar scoping that no source-level check can see.
+* docs/facilitator/validation-status.md, docs/fr/facilitator/validation-status.md - restated the navigation-scoping row so it credits a permanent validator check rather than a one-off inspection, keeping the browser observation separate.
 
 ### Removed
 
@@ -89,6 +99,21 @@ Builds a bilingual ninety-minute GitHub Copilot app workshop: a root README agen
   * Scrolling tables could not receive keyboard focus, every table on a page shared one identical landmark name, the theme footer rendered unmarked English inside French pages, and ten facilitator pages opened at the second heading level and so had no level-one heading at all. All four were fixed in source or in the layout, never in built output, and re-verified to zero violations.
 * Link checking used a purpose-written resolver after the configured package proxy refused every candidate tool.
   * The tool substitution and its rationale are recorded on the validation status page rather than left implicit, and the checker was proved capable of failing before it was trusted.
+* The sidebar was scoped to one language and an English/French toggle added, after the site was already live.
+  * Added `docs/_includes/head_custom.html`, which emits per-page CSS hiding every navigation item whose link declares the other language, plus a JavaScript fallback for browsers without `:has()`. This had to be CSS rather than Liquid for the same reason the language override did: the theme renders the sidebar once through `include_cached` and reuses it byte-identically everywhere, so no Liquid condition inside the component can vary per page. The rule keys on the `lang` attribute the navigation component already emits rather than on href prefixes, because keying on hrefs would duplicate a fact the markup already states and would break the language-of-parts marking if the two ever drifted apart.
+  * `docs/_layouts/default.html` gained a third documented change, a `<nav class="lang-toggle">` landmark rendered from `page.lang_ref`. The toggle sets no colour of its own so it inherits the theme's already-verified contrast rather than introducing a new pairing, and its link carries both `lang` and `hreflang`.
+* The French navigation tree was flattened to top level, which the plan did not anticipate.
+  * Every French page previously hung off a `Français` parent, so the French tree sat one level deeper than the English one and the toggle would have moved a reader between structurally dissimilar sidebars. The six French section entries are now siblings at top level, matching English exactly. The French home page is titled `Accueil` rather than `Atelier`, because `Atelier` and `Ateliers` differ by one character and would have sat adjacent in the sidebar; the mild asymmetry against `Workshop` is the lesser problem.
+* The navigation validator's grouping key became language-aware, and two of its summary lines were de-verdicted.
+  * Flattening French put both language trees at the same nesting depth, so the original key grouped English and French entries together and reported six false collisions. Adding page language to the key is a correction rather than a relaxation: two pages colliding within one language still fail. Separately, `validateNavigation` printed `Navigation OK: ... no parent or nav_order conflicts` unconditionally, including on the very run that reported a collision. Both that line and the counterpart summary now report measured counts and leave the verdict to the exit code.
+* A new `validateLanguageToggle` check was added that the plan did not specify.
+  * It asserts that every page declares `lang_ref`, that the target resolves to a real page, that the target is in the other language, and that the mapping is symmetric. Without it, a broken toggle would be invisible until a reader clicked it. It runs in full mode only, matching `validateCounterparts`, because a subtree validated in isolation cannot see its counterpart.
+* Accessibility and reflow figures on both validation status pages were re-measured against the published site and revised downward.
+  * The axe-core passing-check count fell from 16,101 to 15,677 and the incomplete-contrast node count from 75 to 56, because half the navigation links are now hidden by CSS and axe does not evaluate hidden nodes. The verdicts did not change: zero violations across 56 runs, and no horizontal scrolling across 56 reflow checks. Those pages also carried two statements that the deployment had falsified, including a bullet asserting the site was not published; both were corrected the same day.
+* The rendered-sidebar census was promoted into the validator, closing follow-on items WI-15 and WI-22.
+  * The counts that proved the language scoping worked came from scripts written to measure it once and deleted afterwards, so a regression that reintroduced cross-language links would have passed `validate:all` unnoticed. `validateRenderedNavigation` now reads every built HTML document in full mode and asserts, per page, that the head hides the other language and not its own, that every sidebar link declares a language so the hiding rule can match it, that no unexpected language appears, and that the toggle link names the other language in both `lang` and `hreflang`. It reports measured counts and leaves the verdict to the exit code, on the same reasoning as the de-verdicting above.
+  * It was proved capable of failing before it was trusted. Four separate injections into one built page — removing the hiding rule, pointing the rule at the page's own language, stripping `lang` from a single sidebar link, and pointing the toggle at its own language — were each detected with exit 1, and each was reverted.
+  * What it cannot do is check that the rule wins the cascade, because it reads markup and not computed style. That residue is recorded as WI-23 rather than left as an implied guarantee.
 
 ## Release Summary
 
@@ -111,10 +136,14 @@ Both languages are authored as primary and validated separately. The French sess
 
 ### Deployment notes
 
-Nothing here has been published. The workflow has never executed, because Pages is not enabled on this repository and the `ruby/setup-ruby` action is absent from the Actions allow-list. Both are owner actions, recorded as DR-09 and DR-10.
+The site is published at `https://devopsabcs-engineering.github.io/github-copilot-app-workshop/`. Pages was enabled with the Actions source, closing DR-09. DR-10 turned out to be a misdiagnosis: `ruby/setup-ruby` was already permitted, and the first run failed instead because the pinned action version shipped a Ruby index that predated 3.2.11. Moving the pin to v1.325.0 made the run green. Fifteen live URLs were then requested and all returned HTTP 200, including both deck downloads, with no href leaking a `/docs/` prefix.
+
+A later change scoped the sidebar to one language at a time and added an English/French toggle to every page. The French tree was flattened to top level so the two languages are structurally parallel, and the navigation validator was made language-aware and taught to assert that every `lang_ref` resolves across languages and round-trips. Accessibility and reflow were re-measured against the published site afterwards: 56 axe-core runs with zero violations, and 56 reflow checks with no horizontal scrolling.
 
 ### This workshop is not delivery-ready
 
 Every gate that would make it ready is open, and each one blocks on its own. No reference canvas has been generated or staged, so the section three recovery path does not exist. No timed dry run has been performed in either language. Venue concurrency, customer proxy behaviour, the per-seat AI credit budget, per-seat enterprise app policy, telemetry disclosure, and written approval to execute generated code are all unverified. No prompt in this repository has ever been run in a workshop, no screenshot exists, and no deck has been looked at. The full statement, separating what was machine-verified from what was human-judged from what was not verified at all, is published at docs/facilitator/validation-status.md and its French counterpart.
+
+DR-09 and DR-10 closing changes none of that. The site being live proves the site builds and serves. It proves nothing about the session.
 
 No delivery date should be offered until those gates close.

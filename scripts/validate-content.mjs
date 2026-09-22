@@ -15,7 +15,8 @@
 //   (no flags)       Full parity across all five surfaces: content model,
 //                    front matter, counterpart matching, covers-marker parity,
 //                    navigation integrity, slug policy, README alignment, and
-//                    the post-build base path assertion.
+//                    the post-build base path and rendered navigation
+//                    assertions.
 //   --structure-only Front matter well-formedness, covers markers, and content
 //                    model alignment, scoped to whatever trees are supplied.
 //                    Skips counterpart matching, README parsing, and the base
@@ -1047,6 +1048,148 @@ function validateBasePath(options) {
 }
 
 // ---------------------------------------------------------------------------
+// Post-build rendered navigation assertion
+// ---------------------------------------------------------------------------
+
+// Collect every built HTML document, skipping the theme's asset tree.
+function collectBuiltHtml(root) {
+  const found = [];
+  const walk = (directory) => {
+    for (const entry of readdirSync(directory).sort()) {
+      if (entry === 'assets') continue;
+      const absolute = path.join(directory, entry);
+      if (statSync(absolute).isDirectory()) walk(absolute);
+      else if (entry.endsWith('.html')) found.push(absolute);
+    }
+  };
+  walk(root);
+  return found;
+}
+
+// The sidebar is pulled in with `include_cached`, so Jekyll renders it once and
+// reuses that markup byte-identically on every page. Both languages are therefore
+// always present in the DOM, and the scoping to one language happens in CSS that
+// head_custom.html emits into each page's own head. Nothing upstream of the
+// browser can see whether that actually worked, which is why this check reads the
+// built output rather than front matter.
+//
+// Three failures are possible and none of them are visible to the source-level
+// checks. The head rule can go missing, and the reader sees both languages. A nav
+// link can lose its `lang` attribute, and that one entry leaks into both languages
+// because the rule keys on `lang`. The rule can name the page's own language, and
+// the sidebar empties itself.
+function validateRenderedNavigation(options) {
+  const siteRoot = path.join(REPO_ROOT, options.site);
+
+  // validateBasePath already failed on an absent or empty site; adding a second
+  // report of the same fact would only inflate the failure count.
+  if (!existsSync(siteRoot) || !existsSync(path.join(siteRoot, 'index.html'))) return;
+
+  const documents = collectBuiltHtml(siteRoot);
+  const visibleCounts = new Map();
+  let checked = 0;
+  let toggles = 0;
+
+  for (const absolute of documents) {
+    const displayPath = toPosix(path.relative(REPO_ROOT, absolute));
+    const html = readUtf8(absolute);
+
+    const langMatch = html.match(/<html[^>]*\slang="([^"]+)"/i);
+    if (!langMatch) {
+      fail(displayPath, 'rendered_lang', 'Built document declares no lang on <html>.');
+      continue;
+    }
+    const pageLang = langMatch[1];
+    const otherLang = pageLang === 'fr' ? 'en' : 'fr';
+    checked += 1;
+
+    const hideRule = (lang) =>
+      `#site-nav .nav-list-item:has(> a.nav-list-link[lang="${lang}"]) { display: none; }`;
+
+    if (!html.includes(hideRule(otherLang))) {
+      fail(
+        displayPath,
+        'rendered_nav',
+        `Head carries no rule hiding "${otherLang}" nav entries, so this ${pageLang} page shows both languages in the sidebar.`
+      );
+    }
+    if (html.includes(hideRule(pageLang))) {
+      fail(
+        displayPath,
+        'rendered_nav',
+        `Head hides "${pageLang}" nav entries on a ${pageLang} page, which empties the sidebar.`
+      );
+    }
+
+    const nav = (html.match(/<nav[^>]*id="site-nav"[\s\S]*?<\/nav>/i) || [''])[0];
+    if (!nav) {
+      fail(displayPath, 'rendered_nav', 'Built document has no #site-nav sidebar.');
+      continue;
+    }
+
+    const links = [...nav.matchAll(/<a\b[^>]*class="[^"]*\bnav-list-link\b[^"]*"[^>]*>/gi)].map(
+      (match) => match[0]
+    );
+    if (links.length === 0) {
+      fail(displayPath, 'rendered_nav', 'Sidebar contains no nav-list-link anchors.');
+      continue;
+    }
+
+    const unmarked = links.filter((link) => !/\slang="/.test(link));
+    if (unmarked.length > 0) {
+      fail(
+        displayPath,
+        'rendered_nav',
+        `${unmarked.length} sidebar link(s) carry no lang attribute, so the hiding rule cannot match them and they leak into both languages.`
+      );
+    }
+
+    const langs = links
+      .map((link) => (link.match(/\slang="([^"]+)"/) || [])[1])
+      .filter((value) => value !== undefined);
+    const unexpected = [...new Set(langs)].filter((value) => !LANGUAGES.includes(value));
+    if (unexpected.length > 0) {
+      fail(
+        displayPath,
+        'rendered_nav',
+        `Sidebar links declare unexpected language(s): ${unexpected.join(', ')}. Only ${LANGUAGES.join(' and ')} are scoped.`
+      );
+    }
+
+    const visible = langs.filter((value) => value === pageLang).length;
+    if (!visibleCounts.has(pageLang)) visibleCounts.set(pageLang, new Set());
+    visibleCounts.get(pageLang).add(visible);
+
+    const toggle = (html.match(/<nav class="lang-toggle"[\s\S]*?<\/nav>/i) || [''])[0];
+    if (!toggle) {
+      fail(displayPath, 'rendered_toggle', 'Built document renders no language toggle.');
+      continue;
+    }
+    const toggleLang = (toggle.match(/<a\b[^>]*\slang="([^"]+)"/) || [])[1];
+    const toggleHreflang = (toggle.match(/<a\b[^>]*\shreflang="([^"]+)"/) || [])[1];
+    if (toggleLang !== otherLang || toggleHreflang !== otherLang) {
+      fail(
+        displayPath,
+        'rendered_toggle',
+        `Toggle link declares lang="${toggleLang}" hreflang="${toggleHreflang}" on a ${pageLang} page; both must be "${otherLang}".`
+      );
+      continue;
+    }
+    toggles += 1;
+  }
+
+  // Counts, not a verdict. The verdict is the exit code from report().
+  const perLanguage = [...visibleCounts.entries()]
+    .sort()
+    .map(([lang, seen]) => `${lang} ${[...seen].sort((a, b) => a - b).join('/')}`)
+    .join(', ');
+  info(
+    `Rendered navigation: ${checked} built document(s) scoped to one language; visible sidebar links per page: ${perLanguage}.`
+  );
+  info(`Rendered toggle: ${toggles} of ${checked} built document(s) link the other language.`);
+}
+
+// ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
 
@@ -1113,6 +1256,7 @@ function main() {
   validateLanguageToggle(pages);
   validateReadme();
   validateBasePath(options);
+  validateRenderedNavigation(options);
   report(mode);
 }
 
