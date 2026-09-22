@@ -1,0 +1,69 @@
+# Site configuration for the bilingual GitHub Copilot app workshop.
+#
+# baseurl is deliberately ABSENT. The publishing workflow supplies it from the
+# Pages configure step, so the value is never duplicated here where it would
+# drift from the deployed path (adversarial build review finding BLD-H1). Build
+# locally with:
+#   bundle exec jekyll build --source docs --destination _site \
+#     --baseurl "/github-copilot-app-workshop"
+#
+# The site source is docs/, never the repository root, so .copilot-tracking/
+# and the Node tooling are structurally outside the published tree rather than
+# merely excluded from it.
+
+title: GitHub Copilot App Workshop
+description: A 90-minute canvas-first workshop, published in English and French.
+repository: devopsabcs-engineering/github-copilot-app-workshop
+
+# Theme resolves from the pinned gem. No remote_theme, no network fetch.
+theme: just-the-docs
+
+# Default document language. Pages override it through the `defaults` block
+# below and through their own front matter; docs/_layouts/default.html reads
+# `page.lang` first so a French page in this single mixed-language build does
+# not inherit the English value (finding BLD-H2).
+lang: en
+
+plugins:
+  - jekyll-include-cache
+  - jekyll-seo-tag
+
+permalink: pretty
+heading_anchors: true
+color_scheme: light
+
+# Search and the copy-code button are off. Both inject interface labels that
+# the theme supplies in one language only, and search would build a single
+# mixed-language index across both trees. Enabling either requires a
+# localization policy first.
+search_enabled: false
+enable_copy_code_button: false
+
+# Sidebar ordering is driven by each page's `nav_order`; this only settles how
+# ties are broken so the two language groups render in a stable order.
+nav_sort: case_insensitive
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+      lang: en
+  - scope:
+      path: "fr"
+    values:
+      lang: fr
+  - scope:
+      path: "assets"
+    values:
+      nav_exclude: true
+      search_exclude: true
+
+# Additive in Jekyll 4: these extend the built-in excludes rather than
+# replacing them.
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - .bundle
+  - vendor
+  - node_modules

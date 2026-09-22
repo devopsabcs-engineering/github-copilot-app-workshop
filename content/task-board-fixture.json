@@ -1,0 +1,20 @@
+{
+  "boardId": "workshop-team-board",
+  "title": { "en": "Team Task Board", "fr": "Tableau de tâches d'équipe" },
+  "locale": "en",
+  "statusLabels": {
+    "todo": { "en": "To do", "fr": "À faire" },
+    "doing": { "en": "In progress", "fr": "En cours" },
+    "done": { "en": "Done", "fr": "Terminé" }
+  },
+  "priorityLabels": {
+    "high": { "en": "High", "fr": "Haute" },
+    "normal": { "en": "Normal", "fr": "Normale" }
+  },
+  "tasks": [
+    { "id": "T001", "title": { "en": "Write acceptance criteria", "fr": "Rédiger les critères d'acceptation" }, "status": "todo", "priority": "high" },
+    { "id": "T002", "title": { "en": "Review button labels", "fr": "Vérifier les libellés des boutons" }, "status": "todo", "priority": "normal" },
+    { "id": "T003", "title": { "en": "Check keyboard navigation", "fr": "Vérifier la navigation au clavier" }, "status": "doing", "priority": "high" },
+    { "id": "T004", "title": { "en": "Prepare synthetic examples", "fr": "Préparer des exemples fictifs" }, "status": "done", "priority": "normal" }
+  ]
+}

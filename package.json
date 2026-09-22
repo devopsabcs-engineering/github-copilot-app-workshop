@@ -1,0 +1,27 @@
+{
+  "name": "github-copilot-app-workshop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Bilingual ninety-minute GitHub Copilot app workshop: paired English and French site content, generated decks, and parity validators.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "build:decks": "node scripts/build-workshop-deck.mjs",
+    "validate:content": "node scripts/validate-content.mjs",
+    "validate:decks": "node scripts/validate-decks.mjs",
+    "validate:links": "node scripts/validate-links.mjs",
+    "audit:deps": "npm audit --omit=dev --audit-level=high",
+    "validate:all": "npm run audit:deps && npm run validate:content && npm run validate:decks && npm run validate:links"
+  },
+  "dependencies": {
+    "js-yaml": "5.4.2",
+    "jszip": "3.10.2",
+    "pptxgenjs": "3.12.0"
+  },
+  "overrides": {
+    "image-size": "2.0.4"
+  }
+}

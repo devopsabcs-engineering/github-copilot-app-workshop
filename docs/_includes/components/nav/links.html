@@ -1,0 +1,109 @@
+{%- comment -%}
+  Copied verbatim from just-the-docs 0.12.0
+  (_includes/components/nav/links.html), then modified. Upstream is MIT
+  licensed:
+
+    The MIT License (MIT)
+    Copyright (c) 2016 Patrick Marsceill
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+  CHANGE: one sidebar renders both language groups, so a link whose target
+  language differs from the surrounding document is a change in the language of
+  a part (WCAG 3.1.2). Every link now declares its own target language.
+
+  The expander button's aria-label embeds the target page title, so it is
+  marked the same way.
+
+  The marking is ABSOLUTE, not relative to the page being rendered. That is
+  required, not a stylistic choice: components/site_nav.html is pulled in with
+  `include_cached` and is documented as depending on `site` alone, so the
+  sidebar is rendered once and reused on every page. Deciding the attribute by
+  comparing against `page.lang` would make this include page-dependent while
+  the cache kept serving the first page's answer, which yields a sidebar that
+  is right in one language and silently wrong in the other. Marking a link in
+  the document's own language is redundant rather than harmful, and redundancy
+  is the correct trade against a cache-dependent defect.
+
+  Emitting the attribute is not evidence that the announcement changes. The
+  screen reader verification is a separate task (Step 8.1).
+
+  The loop and its conditions are unchanged, so no page can disappear from
+  navigation as a result of this override.
+{%- endcomment -%}
+{%- comment -%}
+  Include as: {%- include components/nav/links.html pages=page_array ancestors=title_array all=bool -%}
+  Depends on: include.pages, include.ancestors, include.all.
+  Results in: HTML for the main navigation when all is nil or false;
+    includes links to pages excluded from the main navigation when all is true.
+  Includes: components/nav/sorted.html, components/nav/children.html, components/nav/links.html.
+  Overwrites:
+    node, nav_children, nav_ancestors, node_lang, nav_lang_attr.
+{%- endcomment -%}
+
+<ul class="nav-list">
+  {%- for node in include.pages -%}
+  {%- if include.all == true or node.nav_exclude != true -%}
+
+  {%- assign node_lang = node.lang | default: site.lang -%}
+  {%- if node_lang == blank -%}
+    {%- assign nav_lang_attr = '' -%}
+  {%- else -%}
+    {%- capture nav_lang_attr %} lang="{{ node_lang }}"{% endcapture -%}
+  {%- endif -%}
+
+  {%- if include.ancestors contains node.title -%}
+
+    <li class="nav-list-item">
+      <a href="{{ node.url | relative_url }}" class="nav-list-link"{{ nav_lang_attr }}> ∞ </a>
+    </li>
+    {%- capture nav_error_report -%}
+      <blockquote class="warning">
+        A page has the same title as its parent page or one of its ancestral pages!<br>
+        This causes an incorrect link in the main navigation panel.<br>
+        Page title: <code>{{ node.title }}</code>, location: <code>{{ node.path }}</code>.
+      </blockquote>
+    {%- endcapture -%}
+
+  {%- else -%}
+
+    {%- include components/nav/children.html node=node ancestors=include.ancestors all=include.all -%}
+
+    <li class="nav-list-item">
+      {%- if nav_children.size >= 1 -%}
+      <button class="nav-list-expander btn-reset" aria-label="{{ node.title }} submenu" aria-expanded="false"{{ nav_lang_attr }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use xlink:href="#svg-arrow-right"></use></svg>
+      </button>
+      {%- endif -%}
+      <a href="{{ node.url | relative_url }}" class="nav-list-link"{{ nav_lang_attr }}>{{ node.title }}</a>
+      {%- if nav_children.size >= 1 -%}
+        {%- if node.child_nav_order == 'desc' or node.child_nav_order == 'reversed' -%}
+          {%- assign nav_children = nav_children | reverse -%}
+        {%- endif -%}
+        {%- assign nav_ancestors = include.ancestors | push: node.title -%}
+        {%- include components/nav/links.html pages=nav_children ancestors=nav_ancestors all=include.all -%}
+      {%- endif -%}
+    </li>
+
+  {%- endif -%}
+
+  {%- endif -%}
+  {%- endfor -%}
+</ul>
+{%- comment -%}{%- endcomment -%}

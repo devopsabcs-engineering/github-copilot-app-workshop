@@ -1,0 +1,24 @@
+# Direct Jekyll 4 dependencies rather than the managed `github-pages` gem
+# (planning log DD-01). Jekyll 4 treats `exclude` as additive, which removes the
+# Jekyll 3 trap where declaring `exclude` silently replaced the defaults
+# (adversarial build review finding BLD-M1).
+#
+# The theme is consumed as a GEM through `theme:` rather than `remote_theme`
+# (planning log DD-02), so the build performs no network theme fetch and the
+# resolved version is pinned by Gemfile.lock.
+#
+# just-the-docs is pinned to an EXACT version, not a pessimistic constraint,
+# because docs/_layouts/default.html and docs/_includes/components/nav/links.html
+# are copied from this version's internals. A theme upgrade is therefore a
+# deliberate act that requires re-copying both overrides (finding BLD-M7).
+
+source "https://rubygems.org"
+
+gem "jekyll", "~> 4.3"
+gem "just-the-docs", "0.12.0"
+gem "webrick", "~> 1.8"
+
+group :jekyll_plugins do
+  gem "jekyll-include-cache", "~> 0.2"
+  gem "jekyll-seo-tag", "~> 2.8"
+end

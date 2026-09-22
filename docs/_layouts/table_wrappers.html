@@ -1,0 +1,53 @@
+---
+layout: vendor/compress
+---
+{%- comment -%}
+  Copied from just-the-docs 0.12.0 (_layouts/table_wrappers.html), then
+  modified. Upstream is MIT licensed; the full licence text is reproduced in
+  _layouts/default.html, which is the other file copied from this gem.
+
+  TWO CHANGES, each required by an accessibility defect:
+
+    1. The theme styles .table-wrapper with overflow-x: auto, which makes it a
+    scrolling container. A scrolling container that cannot receive focus cannot
+    be scrolled by a keyboard-only user, so every table on this site whose
+    content is wider than its column was unreachable without a pointing device.
+    axe-core 4.13.0 reported this as scrollable-region-focusable, serious, on
+    every page carrying a table, in both language trees. It is a WCAG 2.1.1
+    Keyboard failure, not a preference.
+
+    The wrapper is now focusable and named, following the established pattern
+    for responsive tables: tabindex="0" makes it keyboard-scrollable, and
+    role="region" with an accessible name stops it from being announced as an
+    anonymous focus stop.
+
+    2. Naming every wrapper identically then created a second defect. role="region"
+    makes each wrapper a landmark, and landmarks that share an accessible name
+    are indistinguishable in a screen reader's landmark list. axe-core reported
+    this as landmark-unique, moderate, on all eight pages carrying two or more
+    tables, in both language trees. The label is therefore numbered per table
+    within the page, which keeps each landmark distinguishable.
+
+  The label is localized because this is one build serving two languages, and
+  an English label inside a French document would trade a 2.1.1 failure for a
+  3.1.2 one. Reading `page` here is safe: this is a layout, not an include, and
+  it is never routed through include_cached. That distinction is load-bearing
+  and is recorded in _includes/components/nav/links.html.
+
+  This override is pinned to theme internals. Upgrading just-the-docs past
+  0.12.0 requires re-copying this file from the new gem and re-applying the
+  change; it is not a drop-in.
+{%- endcomment -%}
+{%- assign page_lang = page.lang | default: site.lang | default: 'en' -%}
+{%- assign table_parts = content | split: '<table' -%}
+{%- assign content_ = table_parts[0] -%}
+{%- for part in table_parts offset: 1 -%}
+  {%- if page_lang == 'fr' -%}
+    {%- capture table_label -%}Tableau {{ forloop.index }}, défilement horizontal{%- endcapture -%}
+  {%- else -%}
+    {%- capture table_label -%}Table {{ forloop.index }}, scrolls horizontally{%- endcapture -%}
+  {%- endif -%}
+  {%- capture content_ -%}{{ content_ }}<div class="table-wrapper" tabindex="0" role="region" aria-label="{{ table_label }}"><table{{ part }}{%- endcapture -%}
+{%- endfor -%}
+{%- assign content_ = content_ | replace: '</table>', '</table></div>' -%}
+{{ content_ }}

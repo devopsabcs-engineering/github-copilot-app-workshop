@@ -1,0 +1,32 @@
+{%- comment -%}
+  Overrides the theme's hardcoded English site-footer attribution, which
+  appears twice: in components/sidebar.html for the desktop view and in
+  components/footer.html for the mobile view. Both read this file through the
+  same hook, so one file fixes both.
+
+  It exists because the upstream string is English prose rendered unconditionally
+  inside every document, including the French tree, where it sat untranslated
+  and unmarked inside <html lang="fr">. That is a WCAG 3.1.2 language-of-parts
+  failure on every French page.
+
+  Reading `page` here is safe. The sidebar that includes this file is included
+  with a plain `include`, not `include_cached`; only components/site_nav.html
+  nested inside it is cached, which is the finding recorded in
+  components/nav/links.html. The upstream sidebar comment states the same
+  constraint: it must not be cached, because this file may depend on `page`.
+
+  The English variant still declares lang="en" so that if a future theme upgrade
+  ever did route this through a cache, a leaked English string would land on a
+  French page correctly marked rather than silently unmarked. Redundant inside
+  an English document, inert there, and the same defensive posture taken for the
+  navigation links.
+
+  "Just the Docs" and "Jekyll" are proper names and are left untranslated and
+  unmarked, which WCAG 3.1.2 explicitly permits.
+{%- endcomment -%}
+{%- assign page_lang = page.lang | default: site.lang | default: 'en' -%}
+{%- if page_lang == 'fr' -%}
+Ce site utilise <a href="https://github.com/just-the-docs/just-the-docs">Just the Docs</a>, un thème de documentation pour Jekyll.
+{%- else -%}
+<span lang="en">This site uses <a href="https://github.com/just-the-docs/just-the-docs">Just the Docs</a>, a documentation theme for Jekyll.</span>
+{%- endif -%}

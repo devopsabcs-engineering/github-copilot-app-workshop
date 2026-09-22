@@ -1,0 +1,191 @@
+# Build and deploy the bilingual GitHub Copilot app workshop site to GitHub Pages.
+#
+# Every action is pinned to an immutable commit SHA with its human-readable tag
+# in a trailing comment. A tag is a mutable pointer: it can be moved to a
+# different commit after review, which is the same objection that removed the
+# remote theme fetch from this project (planning log DD-04). The version set
+# itself was resolved from the official Pages starter workflow at implementation
+# time rather than copied from any planning document (finding BLD-C2).
+#
+# Provenance, all retrieved 2026-09-22:
+#   Version set
+#     https://api.github.com/repos/actions/starter-workflows/contents/pages/jekyll.yml
+#   Tag to commit SHA resolution
+#     https://api.github.com/repos/actions/checkout/commits/v4               -> 11d5960a326750d5838078e36cf38b85af677262 (v4.4.0)
+#     https://api.github.com/repos/actions/setup-node/commits/v4             -> 49933ea5288caeca8642d1e84afbd3f7d6820020 (v4.4.0)
+#     https://api.github.com/repos/actions/configure-pages/commits/v5        -> 983d7736d9b0ae728b81ab479565c72886d7745b (v5.0.0)
+#     https://api.github.com/repos/actions/upload-pages-artifact/commits/v3  -> 56afc609e74202658d3ffba0e8f6dda462b719fa (v3.0.1)
+#     https://api.github.com/repos/actions/deploy-pages/commits/v5           -> 368f82528645a54fb793d4d04e342629a3f51346 (v5.0.1)
+#     https://api.github.com/repos/ruby/setup-ruby/commits/4a9ddd6f338a97768b8006bf671dfbad383215f4 (v1.207.0, the SHA the starter workflow itself pins)
+#   Each SHA was confirmed against the tag list of its own repository, so the
+#   trailing comments below state the tag that actually points at that commit.
+#
+# Ordering is load-bearing. Deck generation runs BEFORE the Jekyll build so the
+# published artifact contains real downloads rather than two dead links
+# (finding BLD-C1), and the content validator runs AFTER the build because its
+# base path assertion reads the built site.
+#
+# No run of this workflow has been observed. It has been parsed and its shell
+# steps reviewed, nothing more.
+
+name: Deploy workshop site to Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege at the top level. The build job needs to read the repository
+# and read the Pages configuration; only the deploy job is granted the tokens
+# that can publish.
+permissions:
+  contents: read
+
+# One deployment at a time. In-progress runs are never cancelled, because a
+# half-finished Pages deployment is worse than a queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # The Gemfile lives in docs/, so a bundler invocation from the repository root
+  # cannot find it on its own. Without this the build fails with "Could not
+  # locate Gemfile or .bundle/ directory" on a clean runner.
+  BUNDLE_GEMFILE: ${{ github.workspace }}/docs/Gemfile
+  # Fail rather than silently rewrite Gemfile.lock if it and the Gemfile disagree.
+  BUNDLE_FROZEN: 'true'
+  # Pinned to the versions that produced the verified local build.
+  RUBY_VERSION: '3.2.11'
+  NODE_VERSION: '26.7.0'
+
+jobs:
+  build:
+    name: Build and validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # configure-pages runs with enablement:false, so it only reads the Pages
+      # configuration. It never enables Pages, which is an owner action.
+      pages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install Node dependencies from the lockfile
+        run: npm ci
+
+      - name: Audit production dependencies
+        # Named explicitly rather than folded into an aggregate script, so the
+        # failing gate is identifiable in the run log (finding BLD-H4). Any high
+        # or critical advisory fails here; accepted exceptions are recorded with
+        # their justification in SUPPLY-CHAIN.md.
+        run: npm run audit:deps
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@4a9ddd6f338a97768b8006bf671dfbad383215f4 # v1.207.0
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          cache-version: 0
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+
+      - name: Generate both decks
+        # Must precede the Jekyll build. The deck output directory is gitignored
+        # and absent from a fresh clone, so a site built first would publish two
+        # download links pointing at nothing.
+        run: npm run build:decks
+
+      - name: Validate decks
+        run: npm run validate:decks
+
+      - name: Build site with Jekyll
+        # The base path comes from the Pages configure step. It is never
+        # hardcoded here and never set in docs/_config.yml (finding BLD-H1).
+        run: |
+          bundle exec jekyll build \
+            --source docs \
+            --destination _site \
+            --baseurl "${{ steps.pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: production
+
+      - name: Validate content parity
+        # Full parity mode across all five content surfaces. The base path
+        # assertion reads the site built in the previous step and is checked
+        # against the same value Jekyll was given, not against a default.
+        run: npm run validate:content
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+
+      - name: Validate internal links
+        # Resolves every internal reference in the built site, across both
+        # language trees, to a file on disk, and every fragment to an id in the
+        # target document. Runs after the build because it reads _site, and
+        # against the same base path the site was built with.
+        #
+        # Internal references only. External URLs are deliberately not requested
+        # here: a documentation site going down elsewhere is not a defect in this
+        # repository, and failing the build on it would make publishing depend on
+        # third-party uptime. Run "npm run validate:links -- --external" to check
+        # them deliberately.
+        run: npm run validate:links
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+
+      - name: Assert both decks are present and non-empty in the built site
+        # The validators check the generated decks; this checks that they
+        # actually reached the artifact directory. Run before upload so a
+        # missing deck fails the job instead of publishing dead links.
+        run: |
+          set -euo pipefail
+          status=0
+          for lang in en fr; do
+            deck="_site/assets/decks/github-copilot-app-workshop-${lang}.pptx"
+            if [ ! -f "$deck" ]; then
+              echo "FAIL missing $deck"
+              status=1
+              continue
+            fi
+            size=$(stat -c%s "$deck")
+            if [ "$size" -le 0 ]; then
+              echo "FAIL zero-byte $deck"
+              status=1
+              continue
+            fi
+            echo "OK $deck ($size bytes)"
+          done
+          exit "$status"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to Pages
+    # Pull requests build and validate but never deploy. Deployment is limited
+    # to the trusted branch and to manual dispatch.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

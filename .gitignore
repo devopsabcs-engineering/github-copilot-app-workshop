@@ -1,0 +1,24 @@
+# Node toolchain
+node_modules/
+npm-debug.log*
+
+# Generated deck binaries. The generator creates this directory recursively
+# on every run, and CI regenerates the decks before Jekyll builds the site.
+docs/assets/decks/
+
+# Jekyll build output. Every Jekyll invocation in this repository runs from the
+# repository root as:
+#   bundle exec jekyll build --source docs --destination _site
+# so the built site is always _site/ at the root. The pattern is root-anchored
+# on purpose: docs/_site/ is never ignored, so a build that forgot
+# --destination shows up as untracked files instead of disappearing silently.
+/_site/
+.jekyll-cache/
+.jekyll-metadata
+
+# Gemfile.lock is deliberately NOT ignored. The Ruby toolchain is pinned and
+# committed so CI and local previews resolve the same Jekyll and theme versions.
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
