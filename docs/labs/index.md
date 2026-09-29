@@ -28,6 +28,10 @@ Four short labs, one board carried from the first to the last, and one decision 
 * [Lab 02: Refine One Requirement]({{ '/labs/lab-02-refine-canvas/' | relative_url }})
 * [Lab 03: Verify and Decide]({{ '/labs/lab-03-verify-share/' | relative_url }})
 
+One optional follow-on lab sits outside the ninety-minute session and uses the same board and the same oracle:
+
+* [Lab 04: Automate a Board Health Check]({{ '/labs/lab-04-automate-board-check/' | relative_url }})
+
 ## Boundaries that apply to every lab
 
 * Synthetic data only. Nothing operational, defence-related, citizen, employee, proprietary, or personal goes into a prompt, a canvas, a task title, or a file.
@@ -101,6 +105,7 @@ Each lab names a single decision that is yours to make and that no prompt makes 
 * Lab 01: whether to approve the dependencies the agent reports.
 * Lab 02: which discrepancy to fix first when the change does more than you asked.
 * Lab 03: whether the validation the agent generated is evidence you would accept.
+* Lab 04, optional: whether the automation you tested earns a schedule.
 
 ## Official sources
 

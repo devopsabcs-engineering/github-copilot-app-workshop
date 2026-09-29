@@ -31,9 +31,12 @@ pas seulement une invite collée.
 | [01 - Créer et utiliser le canevas]({{ '/fr/labs/lab-01-create-canvas/' | relative_url }}) | 3 | 35 min | Approuver ou refuser les dépendances signalées, avant toute exécution. |
 | [02 - Améliorer une exigence]({{ '/fr/labs/lab-02-refine-canvas/' | relative_url }}) | 4 | 15 min | Choisir quel écart corriger en premier. |
 | [03 - Vérifier et transmettre]({{ '/fr/labs/lab-03-verify-share/' | relative_url }}) | 5 | 10 min | Juger si la validation générée constitue une preuve suffisante. |
+| [04 - Automatiser un contrôle du tableau]({{ '/fr/labs/lab-04-automate-board-check/' | relative_url }}) | Hors séance | env. 20 min, facultatif | Décider si l'automatisation testée mérite une planification. |
 
-Le total de ces quatre ateliers est de soixante-quinze minutes. Les quinze
-minutes restantes appartiennent aux sections 1 et 6, qui se déroulent en groupe.
+Le total des quatre ateliers chronométrés est de soixante-quinze minutes. Les
+quinze minutes restantes appartiennent aux sections 1 et 6, qui se déroulent en
+groupe. L'atelier 04 est un prolongement facultatif, hors des quatre-vingt-dix
+minutes, qui réutilise le même tableau et le même oracle.
 
 ## L'oracle : écarts et invariants
 

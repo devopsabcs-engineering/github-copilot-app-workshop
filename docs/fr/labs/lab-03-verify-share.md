@@ -165,3 +165,8 @@ La section 6 se déroule en groupe. Gardez sous la main vos inconnues écrites :
 c'est ce qui alimente le bilan. Les
 [Ressources]({{ '/fr/ressources/' | relative_url }}) recensent la documentation
 officielle et la liste complète de ce qui n'a pas été vérifié.
+
+Si vous disposez de temps après la séance, l'atelier facultatif
+[04 - Automatiser un contrôle du tableau]({{ '/fr/labs/lab-04-automate-board-check/' | relative_url }})
+transforme les vérifications du jour en une automatisation que vous testez
+vous-même.

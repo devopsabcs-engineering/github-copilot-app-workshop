@@ -61,7 +61,9 @@ export const LAB_SLUGS = [
   'lab-00-setup',
   'lab-01-create-canvas',
   'lab-02-refine-canvas',
-  'lab-03-verify-share'
+  'lab-03-verify-share',
+  // Optional follow-on lab outside the ninety-minute envelope: no section, no slide, no duration_minutes.
+  'lab-04-automate-board-check'
 ];
 
 /**

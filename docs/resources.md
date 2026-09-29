@@ -38,6 +38,8 @@ It does not tell you when the page was written, when it was last revised, or whe
 * G4 [Agent sessions](https://docs.github.com/en/copilot/how-tos/github-copilot-app/agent-sessions): the Interactive, Plan, and Autopilot modes, and the session lifecycle.
 * G5 [Customizing the GitHub Copilot app](https://docs.github.com/en/copilot/how-tos/github-copilot-app/customize-github-copilot-app): inherited skills, MCP servers, and managed settings that still apply inside your session.
 * G6 [Slash commands reference](https://docs.github.com/en/copilot/reference/github-copilot-app-reference/slash-commands): canvas creation, review, and tool-approval commands. Session history retention is documented there; board persistence is not the same thing.
+* G8 [Using automations in the GitHub Copilot app](https://docs.github.com/en/copilot/how-tos/github-copilot-app/using-automations): local and cloud automations, triggers including Manual and CRON, **Create and run**, and on-demand runs. Used by the optional Lab 04, retrieved 2026-09-29.
+* G9 [About Copilot automations](https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-automations): tools as the scope control, visibility of automation sessions, billing per run, and the default that ignores events from users without write access. It describes cloud automations; it does not establish how local automations behave. Retrieved 2026-09-29.
 
 ## Teaching references
 

@@ -192,6 +192,10 @@ Close on limits rather than on a success claim, and say the untested list out lo
 * Today's result establishes how the app behaves on a later build
 * The generated extension is the takeaway
 
+### Optional Follow-On Lab: Automate a Board Health Check
+
+Outside the ninety-minute envelope, about twenty minutes, no slides. Learners save the delta-and-invariant oracle as a local, manual, read-only automation against the board's persisted state, then test it with three planned runs: a baseline, a positive delta, and a planted markup title the check must flag. The intermediate bar adds a prompt-injection title and a CRON preview that is read but not saved. The decision that belongs to the learner is whether the automation earns a schedule. See `docs/labs/lab-04-automate-board-check.md` and its French counterpart.
+
 ### Learning Objectives
 
 By the end of this session, participants will be able to:

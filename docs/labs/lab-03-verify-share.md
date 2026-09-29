@@ -129,4 +129,4 @@ Retrieved 2026-09-22. Retrieval dates are not publication dates.
 
 Name one result you verified yourself and one limit you actually hit. State what was never tested today, including anything the room did not reach. Then choose one next step that stays inside the approvals you already have.
 
-Back to [Labs]({{ '/labs/' | relative_url }}) or on to [Resources]({{ '/resources/' | relative_url }}).
+Back to [Labs]({{ '/labs/' | relative_url }}) or on to [Resources]({{ '/resources/' | relative_url }}). If you have time after the session, the optional [Lab 04: Automate a Board Health Check]({{ '/labs/lab-04-automate-board-check/' | relative_url }}) turns today's checks into an automation you test yourself.

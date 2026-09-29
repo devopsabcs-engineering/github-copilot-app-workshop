@@ -34,6 +34,8 @@ de l'application est proche du quotidien et des libellés d'interface ont déjà
 | Sessions d'agent | <https://docs.github.com/en/copilot/how-tos/github-copilot-app/agent-sessions> |
 | Personnalisation | <https://docs.github.com/en/copilot/how-tos/github-copilot-app/customize-github-copilot-app> |
 | Commandes barre oblique | <https://docs.github.com/en/copilot/reference/github-copilot-app-reference/slash-commands> |
+| Automatisations dans l'application (atelier 04, consultée le 2026-09-29) | <https://docs.github.com/en/copilot/how-tos/github-copilot-app/using-automations> |
+| À propos des automatisations Copilot (infonuagiques; atelier 04, consultée le 2026-09-29) | <https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-automations> |
 
 Ces pages sont en anglais. Aucune source consultée n'établit une couverture
 francophone de l'interface de l'application, et un module d'apprentissage
